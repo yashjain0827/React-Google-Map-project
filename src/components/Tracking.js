@@ -1,19 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Autocomplete, TextField, Button, Box } from "@mui/material";
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  Typography,
-} from "@mui/material";
-import {
-  GoogleMap,
-  Marker,
-  Polyline,
-  useJsApiLoader,
-  InfoWindow,
-} from "@react-google-maps/api";
+import {Drawer,List,ListItem,ListItemText,Typography,} from "@mui/material";
+import {GoogleMap,Marker,Polyline,useJsApiLoader,InfoWindow,} from "@react-google-maps/api";
 
 const mapContainerStyle = {
   width: "100%",
@@ -50,14 +38,9 @@ const Tracking = () => {
     endTime: null,
   });
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const [calculateStop, setCalculateStop] = useState([]);
-  const [displayStop, setDisplayStop] = useState([]);
+  const [interpolatedIndex, setInterpolatedIndex] = useState(0);
 
   const [mapCenter, setMapCenter] = useState(defaultCenter);
-  
-
-
 
   const handleMarkerClick = () => {
     setInfoBoxVisible(true);
@@ -67,12 +50,10 @@ const Tracking = () => {
     setInfoBoxVisible(false);
   };
 
- 
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: "",
   });
-
 
   useEffect(() => {
     const fetchDevices = async () => {
@@ -139,8 +120,9 @@ const Tracking = () => {
         setCurrentPosition(data[0]);
         setTraveledPath([data[0]]);
         setStopMarkers([]);
-        setDisplayStop([]);
+
         setCurrentIndex(0);
+        setInterpolatedIndex(0);
         setIsPaused(false);
         setTripDetails({
           startTime: data[0].fixTime,
@@ -151,6 +133,12 @@ const Tracking = () => {
           endLatitude: null,
           endLongitude: null,
         });
+        handleSpeedChange(1);
+        setMapCenter({
+          lat: data[0].latitude,
+          lng: data[0].longitude,
+        });
+        setIsPlaying(true);
       }
     } catch (error) {
       setError(error.message);
@@ -159,104 +147,164 @@ const Tracking = () => {
     }
   };
 
- 
+  const interpolatePositions = (start, end, steps = 10) => {
+    console.log("start, end", start, end);
+    const latDiff = (end.latitude - start.latitude) / steps;
+    const lngDiff = (end.longitude - start.longitude) / steps;
+
+    const interpolated = [];
+    for (let i = 1; i <= steps; i++) {
+      interpolated.push({
+        latitude: start.latitude + latDiff * i,
+        longitude: start.longitude + lngDiff * i,
+      });
+    }
+    return interpolated;
+  };
 
   useEffect(() => {
     if (positions.length > 1 && !isPaused) {
-    //   const filteredPositions = positions.filter(
-    //     (pos, index, self) =>
-    //       index === 0 ||
-    //       pos.latitude !== self[index - 1].latitude ||
-    //       pos.longitude !== self[index - 1].longitude
-    //   );
-    const filteredPositions = positions.filter((pos, index, self) => {
-        // Always keep the first and last element
-        if (index === 0 || index === self.length - 1) return true;
-      
-        // Check the previous and next positions
-        const isDuplicateWithPrevious =
-          pos.latitude === self[index - 1].latitude &&
-          pos.longitude === self[index - 1].longitude;
-        const isDuplicateWithNext =
-          index < self.length - 1 &&
-          pos.latitude === self[index + 1].latitude &&
-          pos.longitude === self[index + 1].longitude;
-      
-        // Keep the position if it's the first of duplicates or the last
-        return !isDuplicateWithPrevious || !isDuplicateWithNext;
+      const seenCoordinates = new Set();
+      const filteredPositions = positions.filter((pos) => {
+        const coordinateString = `${pos.latitude},${pos.longitude}`;
+        if (seenCoordinates.has(coordinateString)) {
+          return false;
+        }
+        seenCoordinates.add(coordinateString);
+        return true;
       });
-      
+      // console.log("Filtered Positions:", filteredPositions);
 
-      let index = currentIndex;
+      const calculateStops = () => {
+        if (positions.length > 1) {
+          const stops = [];
+          let stopStartIndex = null;
+
+          for (let i = 0; i < positions.length - 1; i++) {
+            const currentPos = positions[i];
+            const nextPos = positions[i + 1];
+            const timeDifference =
+              new Date(nextPos.fixTime) - new Date(currentPos.fixTime);
+
+            if (
+              currentPos.latitude === nextPos.latitude &&
+              currentPos.longitude === nextPos.longitude
+            ) {
+              if (stopStartIndex === null) {
+                stopStartIndex = i;
+              }
+            } else {
+              if (stopStartIndex !== null) {
+                const stopEndIndex = i;
+                const totalTimeDifference =
+                  new Date(positions[stopEndIndex].fixTime) -
+                  new Date(positions[stopStartIndex].fixTime);
+
+                if (totalTimeDifference >= 5 * 60 * 1000) {
+                  stops.push({
+                    latitude: positions[stopStartIndex].latitude,
+                    longitude: positions[stopStartIndex].longitude,
+                    duration: totalTimeDifference,
+                  });
+                }
+
+                stopStartIndex = null;
+              }
+            }
+          }
+          if (stopStartIndex !== null) {
+            const stopEndIndex = positions.length - 1;
+            const totalTimeDifference =
+              new Date(positions[stopEndIndex].fixTime) -
+              new Date(positions[stopStartIndex].fixTime);
+
+            if (totalTimeDifference >= 5 * 60 * 1000) {
+              stops.push({
+                latitude: positions[stopStartIndex].latitude,
+                longitude: positions[stopStartIndex].longitude,
+                duration: totalTimeDifference,
+              });
+            }
+          }
+
+          return stops;
+        }
+        return [];
+      };
+
+      const stops = calculateStops();
+      setStopMarkers(stops);
+
+      let interpolatedArray = [
+        {
+          latitude: filteredPositions[0].latitude,
+          longitude: filteredPositions[0].longitude,
+        },
+      ];
+
+      for (let i = 0; i < filteredPositions.length - 1; i++) {
+        const segmentInterpolated = interpolatePositions(
+          filteredPositions[i],
+          filteredPositions[i + 1]
+        );
+        interpolatedArray = [...interpolatedArray, ...segmentInterpolated];
+      }
+      // console.log("Full Interpolated Array:", interpolatedArray);
 
       const interval = setInterval(() => {
-        if (index < filteredPositions.length - 1) {
-          const currentPosition = filteredPositions[index];
-          const nextPosition = filteredPositions[index + 1];
+        if (interpolatedIndex < interpolatedArray.length) {
+          // console.log("interpolatedArray and interpolatedIndex are:", interpolatedArray, interpolatedIndex)
+          const currentInterpolatedPosition =
+            interpolatedArray[interpolatedIndex];
+          // console.log("Animating Marker at:", currentInterpolatedPosition);
 
-          index += 1;
-          setCurrentPosition(nextPosition);
-          setTraveledPath((prevPath) => [...prevPath, nextPosition]);
-          setCurrentIndex(index);
+        //   // Check if the current position matches any stop position
+        // stops.forEach((stop) => {
+        //   if (
+        //     Math.abs(currentInterpolatedPosition.latitude - stop.latitude) < 0.0001 &&
+        //     Math.abs(currentInterpolatedPosition.longitude - stop.longitude) < 0.0001
+        //   ) {
+        //     // Add stop marker to the map if it's not already added
+        //     if (!stopMarkers.some((marker) => marker.latitude === stop.latitude && marker.longitude === stop.longitude)) {
+        //       setStopMarkers((prevStops) => [...prevStops, stop]);
+        //     }
+        //   }
+        // });
+
+          setCurrentPosition(currentInterpolatedPosition);
+
+          setTraveledPath((prevPath) => [
+            ...prevPath,
+            currentInterpolatedPosition,
+          ]);
 
           setMapCenter({
-            lat: nextPosition.latitude,
-            lng: nextPosition.longitude,
+            lat: currentInterpolatedPosition.latitude,
+            lng: currentInterpolatedPosition.longitude,
           });
 
           setTripDetails((prevDetails) => ({
             ...prevDetails,
-            endLatitude: nextPosition.latitude,
-            endLongitude: nextPosition.longitude,
+            endLatitude: currentInterpolatedPosition.latitude,
+            endLongitude: currentInterpolatedPosition.longitude,
           }));
 
-          if (
-            calculateStop.length === 0 ||
-            currentPosition.latitude !== calculateStop[0].latitude ||
-            currentPosition.longitude !== calculateStop[0].longitude
-          ) {
-            if (calculateStop.length === 2) {
-              const [start, end] = calculateStop;
-              const timeDifference =
-                (new Date(end.fixTime) - new Date(start.fixTime)) / 1000 / 60;
-
-              if (timeDifference > 5) {
-                setDisplayStop((prev) => [
-                  ...prev,
-                  {
-                    startTime: start.fixTime,
-                    endTime: end.fixTime,
-                    latitude: start.latitude,
-                    longitude: start.longitude,
-                  },
-                ]);
-              }
-              setCalculateStop([]);
-            }
-
-            setCalculateStop([{ ...currentPosition }]);
-          } else {
-            if (calculateStop.length < 2) {
-              setCalculateStop((prev) => [...prev, { ...currentPosition }]);
-            } else {
-              setCalculateStop((prev) => [prev[0], { ...currentPosition }]);
-            }
-          }
+          setInterpolatedIndex((prevIndex) => prevIndex + 1);
         } else {
           clearInterval(interval);
 
           setTripDetails((prevDetails) => ({
             ...prevDetails,
-            endTime: positions[positions.length - 1].fixTime,
+            endTime: positions[positions.length - 1]?.fixTime,
           }));
         }
-      }, 500 / speed);
+      }, 50 / speed);
 
       setCurrentInterval(interval);
 
       return () => clearInterval(interval);
     }
-  }, [positions, isPaused, speed, currentIndex, calculateStop, tripDetails]);
+  }, [positions, isPaused, speed, tripDetails, interpolatedIndex]);
 
   const handleSpeedChange = (multiplier) => {
     if (multiplier !== speed) {
@@ -284,19 +332,20 @@ const Tracking = () => {
     setIsPaused(true);
     setIsPlaying(false);
     if (currentInterval) clearInterval(currentInterval);
-
-    setCurrentPosition(null);
+    setCurrentIndex(0);
+    setInterpolatedIndex(0);
     setTraveledPath([]);
     setStopMarkers([]);
     setCurrentIndex(0);
-    setDisplayStop([]);
+
     if (positions.length > 0) {
-      setMapCenter(positions[0]);
+      setMapCenter({
+        lat: positions[0].latitude,
+        lng: positions[0].longitude,
+      });
       setIsPaused(false);
     }
   };
-
-  
 
   const toggleDrawer = (open) => () => {
     setDrawerOpen(open);
@@ -307,14 +356,24 @@ const Tracking = () => {
       <Box
         sx={{
           mb: 4,
-          textAlign: "center",
+          display: "flex",
+          justifyContent: "center", 
+          alignItems: "center", 
           backgroundColor: "#1976d2",
           color: "#fff",
           p: 2,
           borderRadius: 1,
+          position: "relative",
         }}
       >
-        <h1 style={{ margin: 0, fontSize: "24px" }}>Device Tracking System</h1>
+        <h1 style={{ margin: 0, fontSize: "24px", textAlign:"center" }}>Device Tracking System</h1>
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ position: "absolute", left: 16 }}
+        >
+          Dashboard
+        </Button>
       </Box>
 
       {loading && <p>Loading...</p>}
@@ -446,26 +505,29 @@ const Tracking = () => {
                       secondary={`${tripDetails.startTime} - (${tripDetails.startLatitude}, ${tripDetails.startLongitude})`}
                     />
                   </ListItem>
-                  {displayStop.map((stop, index) => {
-                    const startTime = new Date(stop.startTime);
-                    const endTime = new Date(stop.endTime);
-                    const duration = (endTime - startTime) / 1000 / 60;
-                    const newDuration = `${duration} mins`;
-                    return (
-                      <ListItem key={index}>
-                        <ListItemText
-                          primary={`Stop ${index + 1}`}
-                          secondary={`${stop.latitude}, ${stop.longitude} - Stopped from ${stop.startTime} to ${stop.endTime} (${newDuration})`}
-                        />
-                      </ListItem>
-                    );
-                  })}
+
                   <ListItem>
                     <ListItemText
                       primary="End Time"
-                      secondary={`${tripDetails.endTime} - (${tripDetails.endLatitude}, ${tripDetails.endLongitude})`}
+                      secondary={
+                        tripDetails.endTime
+                          ? `${tripDetails.endTime} - (${tripDetails.endLatitude}, ${tripDetails.endLongitude})`
+                          : ""
+                      }
                     />
                   </ListItem>
+                  {stopMarkers.map((stop, index) => (
+                    <ListItem key={`stop-${index}`}>
+                      <ListItemText
+                        primary={`Stop ${index + 1}`}
+                        secondary={`(${stop.latitude}, ${
+                          stop.longitude
+                        }) - Stopped for ${(stop.duration / 60000).toFixed(
+                          0
+                        )} minutes`}
+                      />
+                    </ListItem>
+                  ))}
                 </List>
               </Box>
             </Drawer>
@@ -492,9 +554,9 @@ const Tracking = () => {
                     label="End"
                   />
                   <Polyline
-                    path={traveledPath.map((pos) => ({
-                      lat: pos.latitude,
-                      lng: pos.longitude,
+                    path={traveledPath.map((point) => ({
+                      lat: point.latitude,
+                      lng: point.longitude,
                     }))}
                     options={{
                       strokeColor: "#FFFF00",
@@ -528,29 +590,28 @@ const Tracking = () => {
                           Latitude: {currentPosition.latitude.toFixed(6)}
                           <br />
                           Longitude: {currentPosition.longitude.toFixed(6)}
-                          <br />
+                          {/* <br />
                           Speed: {currentPosition.speed || "N/A"} km/h
                           <br />
                           Time:{" "}
                           {new Date(
                             currentPosition.fixTime
-                          ).toLocaleTimeString()}
+                          ).toLocaleTimeString()} */}
                         </p>
                       </div>
                     </InfoWindow>
                   )}
-
-                  {displayStop.map((marker, index) => (
+                  {stopMarkers.map((stop, index) => (
                     <Marker
-                      key={index}
+                      key={`stop-marker-${index}`}
                       position={{
-                        lat: marker.latitude,
-                        lng: marker.longitude,
+                        lat: stop.latitude,
+                        lng: stop.longitude,
                       }}
                       icon={{
                         url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
                       }}
-                      label={`Stop ${index + 1}`}
+                      label="Stop"
                     />
                   ))}
                 </>

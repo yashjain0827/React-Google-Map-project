@@ -8,7 +8,6 @@ import carStopIcon from './img/carStop.svg';
 import carIdleIcon from './img/carIdle.svg';
 import carOfflineIcon from './img/carOffline.svg';
 import './App.css';
-// import { useNavigate } from 'react-router-dom';
 
 const mapContainerStyle = {
   width: '100%',
