@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
 import Sidebar from './components/Sidebar';
 import Tracking from './components/Tracking';
 import car1 from './img/car1.svg';
 import carStopIcon from './img/carStop.svg';
 import carIdleIcon from './img/carIdle.svg';
 import carOfflineIcon from './img/carOffline.svg';
-import './App.css';
+import MainContainer from './components/Dashboard';
+import { Box, Grid } from '@mui/material';
 
 const mapContainerStyle = {
   width: '100%',
@@ -25,9 +27,10 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('all'); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [open, setOpen] = useState(false);
+
 
   const googleMapRef = useRef(null);
-  const navigate = useNavigate();
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
@@ -100,65 +103,34 @@ function App() {
   };
 
   return (
+    <Router>
     <div className="app">
-      <header className="header">Watsoo Xpress
-      <button className="next-button" onClick={() => navigate('./components/Tracking')}>Device Tracking</button>
-      </header>
+      
 
-      <div className="main-container">
-        <Sidebar
-          activeCategory={activeCategory}
-          chartData={[
-            { name: 'Running', value: (allData?.RUNNING || []).length },
-            { name: 'Stop', value: (allData?.STOP || []).length },
-            { name: 'Idle', value: (allData?.IDLE || []).length },
-            { name: 'Offline', value: (allData?.OFFLINE || []).length },
-          ]}
-          showData={showData} 
-          setShowData={setShowData}
-          setActiveCategory={setActiveCategory}
-          allData={allData}
-        />
+      <Grid container>
+        <Grid item xs={12}>
+         <header style={{backgroundColor: "#007bff", color: "white", padding: "15px", textAlign: "center", fontSize: "24px"}}>Watsoo Xpress</header>
+        </Grid>
 
-        <div className="content">
-        
-            <div className="google-map">
-              {isLoaded && (
-                <GoogleMap
-                  mapContainerStyle={mapContainerStyle}
-                  center={mapCenter}
-                  zoom={5}
-                  ref={googleMapRef}
-                  onLoad={handleMapLoad} 
-                >
-                  {showData.map((location, index) => (
-                    <Marker
-                      key={index}
-                      position={{
-                        lat: location.latitude,
-                        lng: location.longitude,
-                      }}
-                      icon={getMarkerIcon(location.status)} 
-                    />
-                  ))}
-                </GoogleMap>
-              )}
-            </div>          
-        </div>
-      </div>
+        <Grid item xs={12}>
+          <Box sx={{display: "flex"}}>
+            <Sidebar open={open} setOpen={setOpen}/>
+            <Routes>
+                < Route
+                path="/"
+                element={
+            <Dashboard activeCategory={activeCategory} setActiveCategory={setActiveCategory} allData={allData} showData={showData} setShowData={setShowData} isLoaded={isLoaded} mapContainerStyle={mapContainerStyle} googleMapRef={googleMapRef} mapCenter={mapCenter} getMarkerIcon={getMarkerIcon} handleMapLoad={handleMapLoad} />}
+            />
+            <Route path="/Tracking" element={<Tracking open={open} />} />
+            </Routes>
+          </Box>
+        </Grid>
+      </Grid>
     </div>
+    </Router>
   );
 }
 
-function Track(){
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/components/Tracking" element={<Tracking />} />
-      </Routes>
-    </Router>
-  )
-}
 
-export default Track;
+export default App;
+

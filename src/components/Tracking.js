@@ -3,17 +3,12 @@ import { Autocomplete, TextField, Button, Box } from "@mui/material";
 import {Drawer,List,ListItem,ListItemText,Typography,} from "@mui/material";
 import {GoogleMap,Marker,Polyline,useJsApiLoader,InfoWindow,} from "@react-google-maps/api";
 
-const mapContainerStyle = {
-  width: "100%",
-  height: "700px",
-};
-
 const defaultCenter = {
   lat: 20.5937,
   lng: 78.9629,
 };
 
-const Tracking = () => {
+const Tracking = ({open}) => {
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [fromDate, setFromDate] = useState("");
@@ -37,6 +32,10 @@ const Tracking = () => {
     stops: [],
     endTime: null,
   });
+  const mapContainerStyle = {
+    width: `calc(100vw - ${open ? "196px" : "76px"})`,
+    height: "calc(100vh - 150px)",
+  };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [interpolatedIndex, setInterpolatedIndex] = useState(0);
 
@@ -173,7 +172,7 @@ const Tracking = () => {
         seenCoordinates.add(coordinateString);
         return true;
       });
-      // console.log("Filtered Positions:", filteredPositions);
+     
 
       const calculateStops = () => {
         if (positions.length > 1) {
@@ -249,27 +248,14 @@ const Tracking = () => {
         );
         interpolatedArray = [...interpolatedArray, ...segmentInterpolated];
       }
-      // console.log("Full Interpolated Array:", interpolatedArray);
+      
 
       const interval = setInterval(() => {
         if (interpolatedIndex < interpolatedArray.length) {
-          // console.log("interpolatedArray and interpolatedIndex are:", interpolatedArray, interpolatedIndex)
+        
           const currentInterpolatedPosition =
             interpolatedArray[interpolatedIndex];
-          // console.log("Animating Marker at:", currentInterpolatedPosition);
-
-        //   // Check if the current position matches any stop position
-        // stops.forEach((stop) => {
-        //   if (
-        //     Math.abs(currentInterpolatedPosition.latitude - stop.latitude) < 0.0001 &&
-        //     Math.abs(currentInterpolatedPosition.longitude - stop.longitude) < 0.0001
-        //   ) {
-        //     // Add stop marker to the map if it's not already added
-        //     if (!stopMarkers.some((marker) => marker.latitude === stop.latitude && marker.longitude === stop.longitude)) {
-        //       setStopMarkers((prevStops) => [...prevStops, stop]);
-        //     }
-        //   }
-        // });
+        
 
           setCurrentPosition(currentInterpolatedPosition);
 
@@ -352,34 +338,12 @@ const Tracking = () => {
   };
 
   return (
-    <Box className="tracking-container" sx={{ p: 4 }}>
-      <Box
-        sx={{
-          mb: 4,
-          display: "flex",
-          justifyContent: "center", 
-          alignItems: "center", 
-          backgroundColor: "#1976d2",
-          color: "#fff",
-          p: 2,
-          borderRadius: 1,
-          position: "relative",
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: "24px", textAlign:"center" }}>Device Tracking System</h1>
-        <Button
-          variant="contained"
-          color="secondary"
-          sx={{ position: "absolute", left: 16 }}
-        >
-          Dashboard
-        </Button>
-      </Box>
+    <Box className="tracking-container" sx={{ p: 1 }}>
 
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <Box display="flex" alignItems="center" gap={12} flexWrap="wrap">
+      <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" marginTop={1}>
         <Autocomplete
           options={devices}
           getOptionLabel={(option) => option.name || "Unknown Device"}
@@ -425,7 +389,7 @@ const Tracking = () => {
         </Button>
       </Box>
 
-      <Box sx={{ mt: 4, position: "relative" }}>
+      <Box sx={{ mt: 1.5, position: "relative" }}>
         {isLoaded ? (
           <>
             <Box
@@ -590,13 +554,6 @@ const Tracking = () => {
                           Latitude: {currentPosition.latitude.toFixed(6)}
                           <br />
                           Longitude: {currentPosition.longitude.toFixed(6)}
-                          {/* <br />
-                          Speed: {currentPosition.speed || "N/A"} km/h
-                          <br />
-                          Time:{" "}
-                          {new Date(
-                            currentPosition.fixTime
-                          ).toLocaleTimeString()} */}
                         </p>
                       </div>
                     </InfoWindow>

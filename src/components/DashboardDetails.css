@@ -1,16 +1,16 @@
-.sidebar {
+.dashboard {
   display: flex;
   flex-direction: column; 
   padding: 20px;
   background-color: #f4f4f4;
-  width: 400px; 
-  height: 100vh; 
+  width: 500px; 
+  /* height: 100vh;  */
   box-sizing: border-box;
   overflow: hidden; 
 }
 
 
-.sidebar-buttons-container {
+.dashboard-buttons-container {
   display: grid;
   grid-template-columns: repeat(5, 1fr); 
   /* gap: 10px;  */
@@ -18,15 +18,16 @@
 }
 
 
-.sidebar-button.selected {
+.dashboard-button.selected {
   font-size: 22px; 
+  font-weight: bold;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); 
   transition: all 0.3s ease; 
   text-align: center;
 }
 
 
-.sidebar-button {
+.dashboard-button {
   padding: 5px 10px;
   font-size: 16px;
   text-align: center; 
@@ -38,27 +39,27 @@
 }
 
 
-.sidebar-button.all {
+.dashboard-button.all {
   background-color: #FF0000; 
 }
 
-.sidebar-button.running {
+.dashboard-button.running {
   background-color: #36A2EB; 
 }
 
-.sidebar-button.stop {
+.dashboard-button.stop {
   background-color: #FF6384; 
 }
 
-.sidebar-button.idle {
+.dashboard-button.idle {
   background-color: #FF9F40; 
 }
 
-.sidebar-button.offline {
+.dashboard-button.offline {
   background-color: #4BC0C0; 
 }
 
-.sidebar-button:hover {
+.dashboard-button:hover {
   opacity: 0.8; 
 }
 
