@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import DashboardDetails from "./DashboardDetails";
-import { GoogleMap, Marker, MarkerClusterer } from "@react-google-maps/api";
+import { GoogleMap } from "@react-google-maps/api";
+import CustomMarker from "./CustomMarker";
 
 function Dashboard({
   activeCategory,
@@ -12,10 +13,13 @@ function Dashboard({
   mapContainerStyle,
   googleMapRef,
   mapCenter,
-  getMarkerIcon,
+  getMarkerIcon: originalGetMarkerIcon,
   handleMapLoad,
   open
 }) {
+  const memoizedShowData = useMemo(() => showData, [showData]);
+  const getMarkerIcon = useCallback(originalGetMarkerIcon, []);
+
   return (
     <div style={{ display: "flex", flexGrow: 1, height: "calc(100vh - 60px)", marginLeft: "60px"}}
      >
@@ -42,31 +46,13 @@ function Dashboard({
             ref={googleMapRef}
             onLoad={handleMapLoad}
           >
-            {showData.map((location, index) => (
-              <Marker
+              {memoizedShowData.map((location, index) => (
+              <CustomMarker
                 key={index}
-                position={{
-                  lat: location.latitude,
-                  lng: location.longitude,
-                }}
-                icon={getMarkerIcon(location.status)}
+                location={location}
+                getMarkerIcon={getMarkerIcon}
               />
             ))}
-            {/* <MarkerClusterer>
-              {(clusterer) =>
-                showData.map((location, index) => (
-                  <Marker
-                    key={index}
-                    position={{
-                      lat: location.latitude,
-                      lng: location.longitude,
-                    }}
-                    icon={getMarkerIcon(location.status)}
-                    clusterer={clusterer}
-                  />
-                ))
-              }
-            </MarkerClusterer> */}
           </GoogleMap>
         )}
       </div>

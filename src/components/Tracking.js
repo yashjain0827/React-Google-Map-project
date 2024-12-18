@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { Autocomplete, TextField, Button, Box, Grid } from "@mui/material";
-import {Drawer,List,ListItem,ListItemText,Typography,} from "@mui/material";
-import {GoogleMap,Marker,Polyline,useJsApiLoader,InfoWindow,} from "@react-google-maps/api";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+} from "@mui/material";
+import {
+  GoogleMap,
+  Marker,
+  Polyline,
+  useJsApiLoader,
+  InfoWindow,
+} from "@react-google-maps/api";
 
 const defaultCenter = {
   lat: 20.5937,
@@ -172,7 +184,6 @@ const Tracking = () => {
         seenCoordinates.add(coordinateString);
         return true;
       });
-     
 
       const calculateStops = () => {
         if (positions.length > 1) {
@@ -248,14 +259,11 @@ const Tracking = () => {
         );
         interpolatedArray = [...interpolatedArray, ...segmentInterpolated];
       }
-      
 
       const interval = setInterval(() => {
         if (interpolatedIndex < interpolatedArray.length) {
-        
           const currentInterpolatedPosition =
             interpolatedArray[interpolatedIndex];
-        
 
           setCurrentPosition(currentInterpolatedPosition);
 
@@ -338,108 +346,63 @@ const Tracking = () => {
   };
 
   return (
-    <Box className="tracking-container" sx={{ p: 1 ,marginLeft: "60px"}}>
-
+    <Box className="tracking-container" sx={{ p: 1, marginLeft: "60px" }}>
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {/* <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" marginTop={1} sx={{justifyContent: "space-between"}}>
+      <Grid container columnSpacing={2} sx={{ marginTop: "5px" }}>
+        <Grid item xs={3.5}>
+          <Autocomplete
+            options={devices}
+            getOptionLabel={(option) => option.name || "Unknown Device"}
+            renderInput={(params) => (
+              <TextField {...params} label="Select Device" variant="outlined" />
+            )}
+            value={selectedDevice}
+            onChange={(event, newValue) => setSelectedDevice(newValue)}
+            sx={{ width: "100%" }}
+            disabled={loading || devices.length === 0}
+          />
+        </Grid>
 
-        <Autocomplete
-          options={devices}
-          getOptionLabel={(option) => option.name || "Unknown Device"}
-          renderInput={(params) => (
-            <TextField {...params} label="Select Device" variant="outlined" />
-          )}
-          value={selectedDevice}
-          onChange={(event, newValue) => setSelectedDevice(newValue)}
-          sx={{ width: "300px" }}
-          disabled={loading || devices.length === 0}
-        />
+        <Grid item xs={3.5}>
+          <TextField
+            label="From Date"
+            type="datetime-local"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ width: "100%" }}
+          />
+        </Grid>
 
-        <TextField
-          label="From Date"
-          type="datetime-local"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          sx={{ width: "300px" }}
-        />
+        <Grid item xs={3.5}>
+          <TextField
+            label="To Date"
+            type="datetime-local"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            sx={{ width: "100%" }}
+          />
+        </Grid>
 
-        <TextField
-          label="To Date"
-          type="datetime-local"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          sx={{ width: "300px" }}
-        />
-
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          sx={{ height: "56px" }}
-          disabled={!selectedDevice || !fromDate || !toDate}
-        >
-          Submit
-        </Button>
-      </Box> */}
-
-<Grid container columnSpacing={2} 
-sx={{marginTop: "5px"}}
->
-  <Grid item xs={3.5}>
-  <Autocomplete
-          options={devices}
-          getOptionLabel={(option) => option.name || "Unknown Device"}
-          renderInput={(params) => (
-            <TextField {...params} label="Select Device" variant="outlined" />
-          )}
-          value={selectedDevice}
-          onChange={(event, newValue) => setSelectedDevice(newValue)}
-          sx={{ width: "100%" }}
-          disabled={loading || devices.length === 0}
-        />
-  </Grid>
-
-  <Grid item xs={3.5}><TextField
-          label="From Date"
-          type="datetime-local"
-          value={fromDate}
-          onChange={(e) => setFromDate(e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          sx={{ width: "100%" }}        /></Grid>
-
-
-  <Grid item xs={3.5}><TextField
-          label="To Date"
-          type="datetime-local"
-          value={toDate}
-          onChange={(e) => setToDate(e.target.value)}
-          InputLabelProps={{
-            shrink: true,
-          }}
-          sx={{ width: "100%" }}        /></Grid>
-
-
-  <Grid item xs={1.5}><Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          sx={{ height: "56px", width: "100%"  }}
-          disabled={!selectedDevice || !fromDate || !toDate}
-        >
-          Submit
-        </Button></Grid>
-
-</Grid>
+        <Grid item xs={1.5}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            sx={{ height: "56px", width: "100%" }}
+            disabled={!selectedDevice || !fromDate || !toDate}
+          >
+            Submit
+          </Button>
+        </Grid>
+      </Grid>
 
       <Box sx={{ mt: 1.5, position: "relative" }}>
         {isLoaded ? (
