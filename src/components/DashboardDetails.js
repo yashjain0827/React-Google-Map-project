@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import DonutChart from './Chart';
 import './DashboardDetails.css';
 import batteryIcon from "../img/batteryIcon.svg";
@@ -11,12 +11,10 @@ import truckoffline from "../img/truck-icon4.svg";
 
 function DashboardDetails({ allData, showData, setShowData, setActiveCategory, activeCategory, chartData }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1); 
-  const itemsPerPage = 10; 
+  const [visibleData, setVisibleData] = useState([]);
+  const containerRef = useRef(null);
 
-  console.log("chartData: ", chartData)
-
-  const totalPages = Math.ceil(showData.length / itemsPerPage) || 1;
+  const ITEMS_PER_LOAD = 10;
 
   const categoryColors = {
     all: '#FF0000',
@@ -26,7 +24,6 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
     offline: '#4BC0C0',
   };
 
-  const activeColor = categoryColors[activeCategory] || '#FF0000';
 
   const categoryIcons = {
     all: truck,
@@ -35,13 +32,6 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
     idle: truckidle,
     offline: truckoffline,
   };
-
-  const activeIcon = categoryIcons[activeCategory] || truck;
-
-  const paginatedData = showData.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   const handleFilterChange = (category) => {
     setActiveCategory(category);
@@ -54,11 +44,12 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
         ...(allData.OFFLINE || []),
       ];
       setShowData(allVehicles);
+      setVisibleData(allVehicles.slice(0, ITEMS_PER_LOAD)); 
     } else {
-      setShowData(allData[category.toUpperCase()] || []);
+      const filteredVehicles = allData[category.toUpperCase()] || [];
+      setShowData(filteredVehicles);
+      setVisibleData(filteredVehicles.slice(0, ITEMS_PER_LOAD));
     }
-
-    setCurrentPage(1);
   };
 
   const handleSearch = (event) => {
@@ -73,14 +64,47 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
         return vehicleId.includes(query);
       });
       setShowData(filteredData);
+      setVisibleData(filteredData.slice(0, ITEMS_PER_LOAD)); 
     }
-
-    setCurrentPage(1);
   };
 
-  const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+
+  
+    if (scrollTop + clientHeight >= scrollHeight * 0.7) {
+      loadMoreData();
+    }
+  };
+
+  const loadMoreData = () => {
+    if (visibleData.length < showData.length) {
+      const nextBatch = showData.slice(visibleData.length, visibleData.length + ITEMS_PER_LOAD);
+      setVisibleData(prev => [...prev, ...nextBatch]);
+    }
+  };
+
+  useEffect(() => {
+    setVisibleData(showData.slice(0, ITEMS_PER_LOAD));
+  }, [showData]);
+
+  const iconByStatus = (status) => {
+    return categoryIcons[status.toLowerCase()] || categoryIcons.default;
+  };
+
+  const borderColorByStatus = (status) => {
+    switch (status.toLowerCase()) {
+      case 'running':
+        return categoryColors.running;
+      case 'stop':
+        return categoryColors.stop;
+      case 'idle':
+        return categoryColors.idle;
+      case 'offline':
+        return categoryColors.offline;
+      default:
+        return categoryColors.all;
     }
   };
 
@@ -129,51 +153,31 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
 
       <DonutChart data={chartData.filter(item => activeCategory === 'all' || item.name.toLowerCase() === activeCategory)} />
 
-      <div className="vehicle-details-container">
+      <div
+        className="vehicle-details-container"
+        ref={containerRef}
+        onScroll={handleScroll}
+      >
         <h3>Vehicle Details</h3>
         <div className="vehicle-grid">
-          {paginatedData.map((vehicle, index) => (
-            <div key={index} className="vehicle-item" style={{borderBottomColor : activeColor}}>
-              <div style={{height : "47px", width : "90px"}}>
-                <img src={activeIcon} alt="Truck Icon" style={{ width: '100%', height: '100%' }} />
+          {visibleData.map((vehicle, index) => (
+            <div key={index} className="vehicle-item" style={{ borderBottomColor: borderColorByStatus(vehicle.status) }}>
+              <div style={{ height: "47px", width: "90px" }}>
+                <img src={iconByStatus(vehicle.status)} alt="Truck Icon" style={{ width: '100%', height: '100%' }} />
               </div>
               <div>
                 <p><strong>ID:</strong> {vehicle.id}</p>
                 <p><strong>Status:</strong> {vehicle.status}</p>
               </div>
-              <div style={{display : 'grid', gridTemplateColumns : "repeat(2, 2fr)"}}>
+              <div style={{ display: 'grid', gridTemplateColumns: "repeat(2, 2fr)" }}>
                 <i className="fa-solid fa-location-crosshairs" style={{ fontSize: '20px' }}></i>
                 <i className="fa-solid fa-power-off" style={{ fontSize: '20px' }}></i>
-                <img src={batteryIcon} alt="Battery Icon" style={{width:'20px', height:'20px'}}/>
-                <img src={sendIcon} alt="Send Icon" style={{fwidth:'20px', height:'20px'}}/>
+                <img src={batteryIcon} alt="Battery Icon" style={{ width: '20px', height: '20px' }} />
+                <img src={sendIcon} alt="Send Icon" style={{ width: '20px', height: '20px' }} />
               </div>
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="pagination-container">
-        {totalPages > 1 && (
-          <>
-            <button
-              className="pagination-button"
-              disabled={currentPage === 1}
-              onClick={() => handlePageChange(currentPage - 1)}
-            >
-              Previous
-            </button>
-            <span className="pagination-info">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              className="pagination-button"
-              disabled={currentPage === totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
-            >
-              Next
-            </button>
-          </>
-        )}
       </div>
     </div>
   );

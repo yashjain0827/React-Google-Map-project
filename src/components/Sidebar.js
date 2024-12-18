@@ -1,59 +1,17 @@
-// import React from 'react';
-// import { Drawer, List, ListItem, ListItemText, Button } from '@mui/material';
-// import { Link } from 'react-router-dom';
+import React from "react";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import { Link } from "react-router-dom";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 
-// const Sidebar = () => {
-//   return (
-//     <Drawer
-//     sx={{
-//         '& .MuiDrawer-paper': {
-//           width: '100%',
-//           boxSizing: 'border-box',
-//           position: 'relative',
-//         },
-//       }}
-     
-//       variant="permanent"
-//       anchor="left"
-//     >
-//       <List>
-//         <ListItem>
-//           <Button
-//             component={Link}
-//             to="/"
-//             fullWidth
-//             variant="contained"
-//             color="primary"
-//           >
-//             Dashboard
-//           </Button>
-//         </ListItem>
-//         <ListItem>
-//           <Button
-//             component={Link}
-//             to="/Tracking"
-//             fullWidth
-//             variant="contained"
-//             color="primary"
-//           >
-//             Device Tracking
-//           </Button>
-//         </ListItem>
-//       </List>
-//     </Drawer>
-//   );
-// };
-
-// export default Sidebar;
-
-import React, { useState } from 'react';
-import { Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
-import { Link } from 'react-router-dom';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import TrackChangesIcon from '@mui/icons-material/TrackChanges';
-
-const Sidebar = ({open,setOpen}) => {
-
+const Sidebar = ({ open, setOpen }) => {
   const handleMouseEnter = () => {
     setOpen(true);
   };
@@ -69,17 +27,20 @@ const Sidebar = ({open,setOpen}) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       sx={{
-        width: open ? 180 : 60,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
+        position: "absolute", 
+        left: 0,
+        top: 0,
+        height: "100%",
+        zIndex: 1000, 
+        "& .MuiDrawer-paper": {
+          position: "absolute", 
+          left: 0,
+          top: 0,
+          height: "100%",
           width: open ? 180 : 60,
-          boxSizing: 'border-box',
-          transition: 'width 0.3s ease',
-          overflowX: 'hidden',
-          position: "relative",
+          boxSizing: "border-box",
+          transition: "width 0.3s ease",
           backgroundColor: "#FF9F40",
-
-
         },
       }}
     >
@@ -88,12 +49,20 @@ const Sidebar = ({open,setOpen}) => {
           <ListItemButton
             component={Link}
             to="/"
-            sx={{ justifyContent: open ? 'initial' : 'center', '&:hover': { backgroundColor: '#FFD580' } }}
-          > 
-              <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
-                <DashboardIcon />
-              </ListItemIcon>
-            {open && <ListItemText primary="Dashboard" sx={{ opacity: open ? 1 : 0 }} />}
+            sx={{
+              justifyContent: open ? "initial" : "center",
+              "&:hover": { backgroundColor: "#FFD580" },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+              <DashboardIcon />
+            </ListItemIcon>
+            {open && (
+              <ListItemText
+                primary="Dashboard"
+                sx={{ opacity: open ? 1 : 0 }}
+              />
+            )}
           </ListItemButton>
         </ListItem>
 
@@ -101,12 +70,20 @@ const Sidebar = ({open,setOpen}) => {
           <ListItemButton
             component={Link}
             to="/Tracking"
-            sx={{ justifyContent: open ? 'initial' : 'center', '&:hover': { backgroundColor: '#FFD580' } }}
-          > 
-              <ListItemIcon sx={{ minWidth: 0, justifyContent: 'center' }}>
-                <TrackChangesIcon />
-              </ListItemIcon>
-            {open && <ListItemText primary="Device Tracking" sx={{ opacity: open ? 1 : 0 }} />}
+            sx={{
+              justifyContent: open ? "initial" : "center",
+              "&:hover": { backgroundColor: "#FFD580" },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+              <TrackChangesIcon />
+            </ListItemIcon>
+            {open && (
+              <ListItemText
+                primary="Device Tracking"
+                sx={{ opacity: open ? 1 : 0 }}
+              />
+            )}
           </ListItemButton>
         </ListItem>
       </List>
@@ -115,4 +92,3 @@ const Sidebar = ({open,setOpen}) => {
 };
 
 export default Sidebar;
-

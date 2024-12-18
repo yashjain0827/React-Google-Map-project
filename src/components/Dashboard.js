@@ -17,7 +17,8 @@ function Dashboard({
   open
 }) {
   return (
-    <div style={{ display: "flex", flexGrow: 1, height: "calc(100vh - 60px)", width: `calc(100vw - ${open ? "190px" : "76px"})` }}>
+    <div style={{ display: "flex", flexGrow: 1, height: "calc(100vh - 60px)", marginLeft: "60px"}}
+     >
       <DashboardDetails
         activeCategory={activeCategory}
         chartData={[

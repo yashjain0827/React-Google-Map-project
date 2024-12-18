@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Autocomplete, TextField, Button, Box } from "@mui/material";
+import { Autocomplete, TextField, Button, Box, Grid } from "@mui/material";
 import {Drawer,List,ListItem,ListItemText,Typography,} from "@mui/material";
 import {GoogleMap,Marker,Polyline,useJsApiLoader,InfoWindow,} from "@react-google-maps/api";
 
@@ -8,7 +8,7 @@ const defaultCenter = {
   lng: 78.9629,
 };
 
-const Tracking = ({open}) => {
+const Tracking = () => {
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [fromDate, setFromDate] = useState("");
@@ -33,8 +33,8 @@ const Tracking = ({open}) => {
     endTime: null,
   });
   const mapContainerStyle = {
-    width: `calc(100vw - ${open ? "196px" : "76px"})`,
-    height: "calc(100vh - 150px)",
+    width: "calc(100vw -  76px)",
+    height: "calc(100vh - 147px)",
   };
   const [currentIndex, setCurrentIndex] = useState(0);
   const [interpolatedIndex, setInterpolatedIndex] = useState(0);
@@ -338,12 +338,13 @@ const Tracking = ({open}) => {
   };
 
   return (
-    <Box className="tracking-container" sx={{ p: 1 }}>
+    <Box className="tracking-container" sx={{ p: 1 ,marginLeft: "60px"}}>
 
       {loading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" marginTop={1}>
+      {/* <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" marginTop={1} sx={{justifyContent: "space-between"}}>
+
         <Autocomplete
           options={devices}
           getOptionLabel={(option) => option.name || "Unknown Device"}
@@ -387,7 +388,58 @@ const Tracking = ({open}) => {
         >
           Submit
         </Button>
-      </Box>
+      </Box> */}
+
+<Grid container columnSpacing={2} 
+sx={{marginTop: "5px"}}
+>
+  <Grid item xs={3.5}>
+  <Autocomplete
+          options={devices}
+          getOptionLabel={(option) => option.name || "Unknown Device"}
+          renderInput={(params) => (
+            <TextField {...params} label="Select Device" variant="outlined" />
+          )}
+          value={selectedDevice}
+          onChange={(event, newValue) => setSelectedDevice(newValue)}
+          sx={{ width: "100%" }}
+          disabled={loading || devices.length === 0}
+        />
+  </Grid>
+
+  <Grid item xs={3.5}><TextField
+          label="From Date"
+          type="datetime-local"
+          value={fromDate}
+          onChange={(e) => setFromDate(e.target.value)}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{ width: "100%" }}        /></Grid>
+
+
+  <Grid item xs={3.5}><TextField
+          label="To Date"
+          type="datetime-local"
+          value={toDate}
+          onChange={(e) => setToDate(e.target.value)}
+          InputLabelProps={{
+            shrink: true,
+          }}
+          sx={{ width: "100%" }}        /></Grid>
+
+
+  <Grid item xs={1.5}><Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          sx={{ height: "56px", width: "100%"  }}
+          disabled={!selectedDevice || !fromDate || !toDate}
+        >
+          Submit
+        </Button></Grid>
+
+</Grid>
 
       <Box sx={{ mt: 1.5, position: "relative" }}>
         {isLoaded ? (
