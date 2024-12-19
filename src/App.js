@@ -1,20 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+import { useJsApiLoader } from "@react-google-maps/api";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
-  useNavigate,
+  Navigate,
+  useLocation,
 } from "react-router-dom";
 import Dashboard from "./components/Dashboard";
 import Sidebar from "./components/Sidebar";
 import Tracking from "./components/Tracking";
+import Login from "./components/Login";
 import car1 from "./img/car1.svg";
 import carStopIcon from "./img/carStop.svg";
 import carIdleIcon from "./img/carIdle.svg";
 import carOfflineIcon from "./img/carOffline.svg";
-import MainContainer from "./components/Dashboard";
 import { Box, Grid } from "@mui/material";
+import { AuthProvider, useAuth } from "./components/AuthContext";
 
 const mapContainerStyle = {
   width: "100%",
@@ -26,7 +28,12 @@ const mapCenter = {
   lng: 78.9629,
 };
 
-function App() {
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
+const Home = () => {
   const [allData, setAllData] = useState(null);
   const [showData, setShowData] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all");
@@ -36,12 +43,14 @@ function App() {
 
   const googleMapRef = useRef(null);
 
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: "",
+    googleMapsApiKey: "", 
   });
 
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  const location = useLocation(); 
 
   useEffect(() => {
     if (mapLoaded) return;
@@ -68,7 +77,7 @@ function App() {
       const result = await response.json();
       const allFetchedData = result?.data || {};
 
-      const tepmShowData = [
+      const tempShowData = [
         ...(allFetchedData.RUNNING || []),
         ...(allFetchedData.STOP || []),
         ...(allFetchedData.IDLE || []),
@@ -76,7 +85,7 @@ function App() {
       ];
 
       setAllData(allFetchedData);
-      setShowData(tepmShowData);
+      setShowData(tempShowData);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -104,53 +113,73 @@ function App() {
   };
 
   return (
-    <Router>
-      <div className="app">
-        <Grid container>
-          <Grid item xs={12}>
-            <header
-              style={{
-                backgroundColor: "#007bff",
-                color: "white",
-                padding: "15px",
-                textAlign: "center",
-                fontSize: "24px",
-              }}
-            >
-              Watsoo Xpress
-            </header>
+    <div className="app">
+      {location.pathname !== "/login" && ( 
+        <>
+          <Grid container>
+            <Grid item xs={12}>
+              <header
+                style={{
+                  backgroundColor: "#007bff",
+                  color: "white",
+                  padding: "15px",
+                  textAlign: "center",
+                  fontSize: "24px",
+                }}
+              >
+                Watsoo Xpress
+              </header>
+            </Grid>
+            <Sidebar open={open} setOpen={setOpen} />
           </Grid>
-
-          <Grid item xs={12}>
-            <Box sx={{ display: "flex", position: "relative", flexGrow: 1 }}>
-              <Sidebar open={open} setOpen={setOpen} />
-              <Routes>
-                <Route
-                  path="/"
-                  element={
-                    <Dashboard
-                      activeCategory={activeCategory}
-                      setActiveCategory={setActiveCategory}
-                      allData={allData}
-                      showData={showData}
-                      setShowData={setShowData}
-                      isLoaded={isLoaded}
-                      mapContainerStyle={mapContainerStyle}
-                      googleMapRef={googleMapRef}
-                      mapCenter={mapCenter}
-                      getMarkerIcon={getMarkerIcon}
-                      handleMapLoad={handleMapLoad}
-                    />
-                  }
-                />
-                <Route path="/Tracking" element={<Tracking open={open} />} />
-              </Routes>
-            </Box>
-          </Grid>
-        </Grid>
-      </div>
-    </Router>
+        </>
+      )}
+      <Grid item xs={12}>
+        <Box sx={{ display: "flex", position: "relative", flexGrow: 1 }}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard
+                    activeCategory={activeCategory}
+                    setActiveCategory={setActiveCategory}
+                    allData={allData}
+                    showData={showData}
+                    setShowData={setShowData}
+                    isLoaded={isLoaded}
+                    mapContainerStyle={mapContainerStyle}
+                    googleMapRef={googleMapRef}
+                    mapCenter={mapCenter}
+                    getMarkerIcon={getMarkerIcon}
+                    handleMapLoad={handleMapLoad}
+                  />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/Tracking"
+              element={
+                <PrivateRoute>
+                  <Tracking open={open} />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </Box>
+      </Grid>
+    </div>
   );
-}
+};
+
+const App = () => (
+  <AuthProvider>
+    <Router>
+      <Home />
+    </Router>
+  </AuthProvider>
+);
 
 export default App;
