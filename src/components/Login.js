@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { TextField, Button, Box, Typography, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import backgroundImage from "../img/backgroundimage.jpg";
 
 const Login = () => {
   const [userId, setUserId] = useState("");
@@ -30,7 +31,11 @@ const Login = () => {
         alignItems: "center",
         height: "100vh",
         width: "100vw",
-        backgroundColor: "rgba(0, 60, 255, 0.1)",
+        // backgroundColor: "rgba(0, 60, 255, 0.1)",
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <Box

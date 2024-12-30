@@ -15,7 +15,7 @@ const CustomMarker = React.memo(({ location, getMarkerIcon }) => {
   );
 }, areEqual);
 
-// Custom equality check to prevent unnecessary renders
+
 function areEqual(prevProps, nextProps) {
   return (
     prevProps.location.latitude === nextProps.location.latitude &&
