@@ -56,13 +56,26 @@ class MapSearch extends Component {
     }
   };
 
+  // handleSearch = () => {
+  //   const { selectedLocation } = this.state; //const selectedLocation = this.state.selectedLocation;
+  //   if (selectedLocation) {
+  //     this.setState({
+  //       mapCenter: {
+  //         lat: selectedLocation.latitude,
+  //         lng: selectedLocation.longitude,
+  //       },
+  //     });
+  //   }
+  // };
+
   handleSearch = () => {
-    const { selectedLocation } = this.state; //const selectedLocation = this.state.selectedLocation;
-    if (selectedLocation) {
+    const { latitude, longitude, location } = this.state;
+    if (latitude && longitude && location) {
       this.setState({
-        mapCenter: {
-          lat: selectedLocation.latitude,
-          lng: selectedLocation.longitude,
+        mapCenter: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
+        selectedLocation: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
         },
       });
     }
@@ -74,7 +87,7 @@ class MapSearch extends Component {
         location: value.name,
         latitude: value.latitude,
         longitude: value.longitude,
-        selectedLocation: value,
+        // selectedLocation: value,
       });
     }
   };
@@ -159,7 +172,7 @@ class MapSearch extends Component {
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={mapCenter}
-            zoom={10}
+            zoom={5}
           >
             {selectedLocation && (
               <Marker
