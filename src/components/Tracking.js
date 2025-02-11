@@ -25,7 +25,7 @@ const Tracking = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [trackingLoading, settrackingLoading] = useState(false);
   const [error, setError] = useState(null);
   const [positions, setPositions] = useState([]);
   const [currentPosition, setCurrentPosition] = useState(null);
@@ -69,7 +69,7 @@ const Tracking = () => {
   useEffect(() => {
     const fetchDevices = async () => {
       try {
-        setLoading(true);
+        settrackingLoading(true);
         const response = await fetch(
           "https://nkcfleet.nyggs.com/api/devices?all=true",
           {
@@ -89,7 +89,7 @@ const Tracking = () => {
       } catch (error) {
         setError(error.message);
       } finally {
-        setLoading(false);
+        settrackingLoading(false);
       }
     };
 
@@ -111,7 +111,7 @@ const Tracking = () => {
     const to = new Date(toDate).toISOString();
 
     try {
-      setLoading(true);
+      settrackingLoading(true);
       const apiURL = `https://nkcfleet.nyggs.com/api/positions/?deviceId=${selectedDevice.id}&from=${from}&to=${to}`;
       const response = await fetch(apiURL, {
         headers: {
@@ -154,7 +154,7 @@ const Tracking = () => {
     } catch (error) {
       setError(error.message);
     } finally {
-      setLoading(false);
+      settrackingLoading(false);
     }
   };
 
@@ -347,7 +347,7 @@ const Tracking = () => {
 
   return (
     <Box className="tracking-container" sx={{ p: 1, marginLeft: "60px" }}>
-      {loading && <p>Loading...</p>}
+      {trackingLoading && <p>Loading...</p>}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <Grid container columnSpacing={2} sx={{ marginTop: "5px" }}>
@@ -361,7 +361,7 @@ const Tracking = () => {
             value={selectedDevice}
             onChange={(event, newValue) => setSelectedDevice(newValue)}
             sx={{ width: "100%" }}
-            disabled={loading || devices.length === 0}
+            disabled={trackingLoading || devices.length === 0}
           />
         </Grid>
 

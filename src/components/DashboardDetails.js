@@ -51,7 +51,7 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
       setVisibleData(filteredVehicles.slice(0, ITEMS_PER_LOAD));
     }
   };
-
+// Need to check later
   const handleSearch = (event) => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
@@ -67,6 +67,24 @@ function DashboardDetails({ allData, showData, setShowData, setActiveCategory, a
       setVisibleData(filteredData.slice(0, ITEMS_PER_LOAD)); 
     }
   };
+
+  // const handleSearch = (event) => {
+  //   const query = event.target.value.toLowerCase();
+  //   setSearchQuery(query);
+  
+  //   if (query === '') {
+  //     setShowData(showData); 
+  //     setVisibleData(showData.slice(0, ITEMS_PER_LOAD));
+  //   } else {
+  //     const filteredData = showData.filter(vehicle => {
+  //       const vehicleId = vehicle.id ? vehicle.id.toString().toLowerCase() : '';
+  //       return vehicleId.includes(query);
+  //     });
+  //     setShowData(filteredData);
+  //     setVisibleData(filteredData.slice(0, ITEMS_PER_LOAD)); 
+  //   }
+  // };
+  
 
   const handleScroll = () => {
     if (!containerRef.current) return;

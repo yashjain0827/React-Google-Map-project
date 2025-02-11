@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useJsApiLoader } from "@react-google-maps/api";
+// import { useJsApiLoader } from "@react-google-maps/api";
 import {
   BrowserRouter as Router,
   Route,
@@ -17,6 +17,7 @@ import carIdleIcon from "./img/carIdle.svg";
 import carOfflineIcon from "./img/carOffline.svg";
 import { Box, Grid } from "@mui/material";
 import { AuthProvider, useAuth } from "./components/AuthContext";
+import MapSearchWrapper from "./components/MapSearchWrapper";
 
 const mapContainerStyle = {
   width: "100%",
@@ -43,14 +44,14 @@ const Home = () => {
 
   const googleMapRef = useRef(null);
 
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: "", 
-  });
+  // const { isLoaded } = useJsApiLoader({
+  //   id: "google-map-script",
+  //   googleMapsApiKey: "",
+  // });
 
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  const location = useLocation(); 
+  const location = useLocation();
 
   useEffect(() => {
     if (mapLoaded) return;
@@ -114,7 +115,7 @@ const Home = () => {
 
   return (
     <div className="app">
-      {location.pathname !== "/login" && ( 
+      {location.pathname !== "/login" && (
         <>
           <Grid container>
             <Grid item xs={12}>
@@ -149,7 +150,7 @@ const Home = () => {
                     allData={allData}
                     showData={showData}
                     setShowData={setShowData}
-                    isLoaded={isLoaded}
+                    // isLoaded={isLoaded}
                     mapContainerStyle={mapContainerStyle}
                     googleMapRef={googleMapRef}
                     mapCenter={mapCenter}
@@ -167,6 +168,23 @@ const Home = () => {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="/MapSearch"
+              element={
+                <PrivateRoute>
+                  <MapSearchWrapper />
+                </PrivateRoute>
+              }
+            />
+
+            {/* <Route
+              path="/MapSearch"
+              element={
+                <PrivateRoute>
+                  <MapSearch />
+                </PrivateRoute>
+              }
+            /> */}
           </Routes>
         </Box>
       </Grid>

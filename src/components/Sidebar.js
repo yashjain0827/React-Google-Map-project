@@ -10,6 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import SearchIcon from "@mui/icons-material/Search";
 
 const Sidebar = ({ open, setOpen }) => {
   const handleMouseEnter = () => {
@@ -27,13 +28,13 @@ const Sidebar = ({ open, setOpen }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       sx={{
-        position: "absolute", 
+        position: "absolute",
         left: 0,
         top: 0,
         height: "100%",
-        zIndex: 1000, 
+        zIndex: 1000,
         "& .MuiDrawer-paper": {
-          position: "absolute", 
+          position: "absolute",
           left: 0,
           top: 0,
           height: "100%",
@@ -48,7 +49,7 @@ const Sidebar = ({ open, setOpen }) => {
         <ListItem disablePadding>
           <ListItemButton
             component={Link}
-            to="/"
+            to="/dashboard"
             sx={{
               justifyContent: open ? "initial" : "center",
               "&:hover": { backgroundColor: "#FFD580" },
@@ -81,6 +82,27 @@ const Sidebar = ({ open, setOpen }) => {
             {open && (
               <ListItemText
                 primary="Device Tracking"
+                sx={{ opacity: open ? 1 : 0 }}
+              />
+            )}
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/MapSearch"
+            sx={{
+              justifyContent: open ? "initial" : "center",
+              "&:hover": { backgroundColor: "#FFD580" },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+              <SearchIcon />
+            </ListItemIcon>
+            {open && (
+              <ListItemText
+                primary="Map Search"
                 sx={{ opacity: open ? 1 : 0 }}
               />
             )}
