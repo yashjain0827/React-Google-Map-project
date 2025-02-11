@@ -84,7 +84,7 @@ class MapSearch extends Component {
     const { suggestions, mapCenter, selectedLocation } = this.state;
 
     const containerStyle = {
-      width: "calc(100vw -  92px)",
+      width: "calc(100vw -  76px)",
       height: "calc(100vh - 171px)",
     };
 
@@ -94,7 +94,7 @@ class MapSearch extends Component {
           alignItems="center"
           sx={{ mb: 2, display: "flex", justifyContent: "space-between" }}
         >
-          <h1>Google Map Search</h1>
+          <h1 style={{ color: "#400c60" }}>Google Map Search</h1>
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             {/* <Grid container spacing={2}>
               <Grid item xs={3}> */}

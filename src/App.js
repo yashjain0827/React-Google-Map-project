@@ -11,6 +11,7 @@ import Dashboard from "./components/Dashboard";
 import Sidebar from "./components/Sidebar";
 import Tracking from "./components/Tracking";
 import Login from "./components/Login";
+import LogoutButton from "./components/Logout";
 import car1 from "./img/car1.svg";
 import carStopIcon from "./img/carStop.svg";
 import carIdleIcon from "./img/carIdle.svg";
@@ -126,9 +127,16 @@ const Home = () => {
                   padding: "15px",
                   textAlign: "center",
                   fontSize: "24px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  position: "relative",
                 }}
               >
-                Watsoo Xpress
+                <span>Watsoo Xpress</span>
+                <div style={{ position: "absolute", right: "15px" }}>
+                  <LogoutButton />
+                </div>
               </header>
             </Grid>
             <Sidebar open={open} setOpen={setOpen} />
