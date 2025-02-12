@@ -1,11 +1,10 @@
 import React, { Component } from "react";
-import { GoogleMap, Marker } from "@react-google-maps/api";
+import { GoogleMap, Marker, Polygon } from "@react-google-maps/api";
 import {
   Autocomplete,
   Box,
   CircularProgress,
   TextField,
-  Grid,
   Button,
 } from "@mui/material";
 
@@ -14,12 +13,14 @@ class MapSearch extends Component {
     super(props);
     this.state = {
       mapCenter: { lat: 20.5937, lng: 78.9629 },
+      zoom: 5, // Initial zoom level
       location: "",
       latitude: "",
       longitude: "",
       suggestions: [],
       selectedLocation: null,
       debounceTimeout: null,
+      geofenceCoords: [],
     };
   }
 
@@ -33,7 +34,7 @@ class MapSearch extends Component {
         try {
           const query = encodeURIComponent(value);
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1`
+            `https://nominatim.openstreetmap.org/search?q=${query}&polygon_geojson=1&format=json&addressdetails=1`
           );
           if (response.ok) {
             const data = await response.json();
@@ -42,6 +43,7 @@ class MapSearch extends Component {
                 name: item.display_name,
                 latitude: parseFloat(item.lat),
                 longitude: parseFloat(item.lon),
+                geofence: item.geojson?.coordinates || [],
               })),
             });
           } else {
@@ -56,27 +58,22 @@ class MapSearch extends Component {
     }
   };
 
-  // handleSearch = () => {
-  //   const { selectedLocation } = this.state; //const selectedLocation = this.state.selectedLocation;
-  //   if (selectedLocation) {
-  //     this.setState({
-  //       mapCenter: {
-  //         lat: selectedLocation.latitude,
-  //         lng: selectedLocation.longitude,
-  //       },
-  //     });
-  //   }
-  // };
-
   handleSearch = () => {
-    const { latitude, longitude, location } = this.state;
+    const { latitude, longitude, location, suggestions } = this.state; //this.state.latitude
     if (latitude && longitude && location) {
+      const selectedSuggestion = suggestions.find((s) => s.name === location);
       this.setState({
         mapCenter: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
         selectedLocation: {
           latitude: parseFloat(latitude),
           longitude: parseFloat(longitude),
         },
+        zoom: 10, // Set zoom to 10 on search
+        geofenceCoords:
+          selectedSuggestion?.geofence[0]?.map((coord) => ({
+            lat: coord[1],
+            lng: coord[0],
+          })) || [],
       });
     }
   };
@@ -87,17 +84,28 @@ class MapSearch extends Component {
         location: value.name,
         latitude: value.latitude,
         longitude: value.longitude,
-        // selectedLocation: value,
       });
     }
   };
 
+  handleClearLocation = () => {
+    this.setState({
+      location: "",
+      latitude: "",
+      longitude: "",
+      selectedLocation: null,
+      geofenceCoords: [],
+      zoom: 5, // Reset zoom when cleared
+    });
+  };
+
   render() {
-    const { isLoaded } = this.props; //this.props.isLoaded;
-    const { suggestions, mapCenter, selectedLocation } = this.state;
+    const { isLoaded } = this.props; //this.props.isLoaded
+    const { suggestions, mapCenter, selectedLocation, geofenceCoords, zoom } =
+      this.state;
 
     const containerStyle = {
-      width: "calc(100vw -  76px)",
+      width: "calc(100vw - 76px)",
       height: "calc(100vh - 171px)",
     };
 
@@ -109,12 +117,13 @@ class MapSearch extends Component {
         >
           <h1 style={{ color: "#400c60" }}>Google Map Search</h1>
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            {/* <Grid container spacing={2}>
-              <Grid item xs={3}> */}
             <Autocomplete
               options={suggestions}
               getOptionLabel={(option) => option.name}
               onChange={this.handleSelectLocation}
+              onInputChange={(event, value) => {
+                if (!value) this.handleClearLocation(); // Reset when cleared
+              }}
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -128,9 +137,7 @@ class MapSearch extends Component {
               )}
               sx={{ minWidth: "200px", marginRight: "10px" }}
             />
-            {/* </Grid>
 
-              <Grid item xs={3}> */}
             <TextField
               label="Latitude"
               variant="outlined"
@@ -140,9 +147,7 @@ class MapSearch extends Component {
               }
               sx={{ minWidth: "150px", marginRight: "10px" }}
             />
-            {/* </Grid>
 
-              <Grid item xs={3}> */}
             <TextField
               label="Longitude"
               variant="outlined"
@@ -152,9 +157,7 @@ class MapSearch extends Component {
               }
               sx={{ minWidth: "150px", marginRight: "10px" }}
             />
-            {/* </Grid>
 
-              <Grid item xs={3}> */}
             <Button
               variant="contained"
               color="primary"
@@ -163,8 +166,6 @@ class MapSearch extends Component {
             >
               Search
             </Button>
-            {/* </Grid>
-            </Grid> */}
           </Box>
         </Box>
 
@@ -172,13 +173,25 @@ class MapSearch extends Component {
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={mapCenter}
-            zoom={5}
+            zoom={zoom}
           >
             {selectedLocation && (
               <Marker
                 position={{
                   lat: selectedLocation.latitude,
                   lng: selectedLocation.longitude,
+                }}
+              />
+            )}
+
+            {geofenceCoords.length > 0 && (
+              <Polygon
+                paths={geofenceCoords}
+                options={{
+                  fillColor: "rgba(0, 150, 136, 0.3)",
+                  strokeColor: "#009688",
+                  strokeOpacity: 0.8,
+                  strokeWeight: 2,
                 }}
               />
             )}
