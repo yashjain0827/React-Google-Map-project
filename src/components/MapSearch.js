@@ -188,8 +188,8 @@ class MapSearch extends Component {
               <Polygon
                 paths={geofenceCoords}
                 options={{
-                  fillColor: "rgba(0, 150, 136, 0.3)",
-                  strokeColor: "#009688",
+                  fillColor: "rgb(255, 5, 5)",
+                  strokeColor: "rgb(255, 0, 0)",
                   strokeOpacity: 0.8,
                   strokeWeight: 2,
                 }}
