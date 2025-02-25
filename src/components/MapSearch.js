@@ -59,9 +59,37 @@ class MapSearch extends Component {
   };
 
   handleSearch = () => {
-    const { latitude, longitude, location, suggestions } = this.state; //this.state.latitude
+    const { latitude, longitude, location, suggestions } = this.state;
     if (latitude && longitude && location) {
       const selectedSuggestion = suggestions.find((s) => s.name === location);
+
+      let geofenceCoords = [];
+
+      if (
+        selectedSuggestion?.geofence &&
+        Array.isArray(selectedSuggestion.geofence) &&
+        selectedSuggestion.geofence.length > 0 // Check if geofence is not empty
+      ) {
+        geofenceCoords = selectedSuggestion.geofence.map((polygon) => {
+          if (Array.isArray(polygon) && polygon.length > 0) {
+            return polygon.map((coordSet) => {
+              // Handle MultiPolygon cases where coordinates are nested
+              if (Array.isArray(coordSet[0])) {
+                return coordSet.map((coord) => ({
+                  lat: coord[1],
+                  lng: coord[0],
+                }));
+              } else {
+                return { lat: coordSet[1], lng: coordSet[0] };
+              }
+            });
+          }
+          return []; // Return empty array if polygon is invalid
+        });
+      }
+
+      console.log("Processed Geofence Coordinates:", geofenceCoords);
+
       this.setState({
         mapCenter: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
         selectedLocation: {
@@ -69,11 +97,7 @@ class MapSearch extends Component {
           longitude: parseFloat(longitude),
         },
         zoom: 10, // Set zoom to 10 on search
-        geofenceCoords:
-          selectedSuggestion?.geofence[0]?.map((coord) => ({
-            lat: coord[1],
-            lng: coord[0],
-          })) || [],
+        geofenceCoords: geofenceCoords.length > 0 ? geofenceCoords : [], // Ensure valid array
       });
     }
   };
@@ -184,17 +208,21 @@ class MapSearch extends Component {
               />
             )}
 
-            {geofenceCoords.length > 0 && (
-              <Polygon
-                paths={geofenceCoords}
-                options={{
-                  fillColor: "rgb(255, 5, 5)",
-                  strokeColor: "rgb(255, 0, 0)",
-                  strokeOpacity: 0.8,
-                  strokeWeight: 2,
-                }}
-              />
-            )}
+            {geofenceCoords.length > 0 &&
+              geofenceCoords.map((polygon, index) =>
+                Array.isArray(polygon) && polygon.length > 0 ? (
+                  <Polygon
+                    key={index}
+                    paths={polygon}
+                    options={{
+                      fillColor: "rgba(255, 0, 0, 0.5)",
+                      strokeColor: "rgb(255, 0, 0)",
+                      strokeOpacity: 0.8,
+                      strokeWeight: 2,
+                    }}
+                  />
+                ) : null
+              )}
           </GoogleMap>
         ) : (
           <CircularProgress />
