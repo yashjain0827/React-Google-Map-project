@@ -15,14 +15,20 @@ function Dashboard({
   mapCenter,
   getMarkerIcon: originalGetMarkerIcon,
   handleMapLoad,
-  open
+  open,
 }) {
   const memoizedShowData = useMemo(() => showData, [showData]);
   const getMarkerIcon = useCallback(originalGetMarkerIcon, []);
 
   return (
-    <div style={{ display: "flex", flexGrow: 1, height: "calc(100vh - 60px)", marginLeft: "60px"}}
-     >
+    <div
+      style={{
+        display: "flex",
+        flexGrow: 1,
+        height: "calc(100vh - 60px)",
+        marginLeft: "60px",
+      }}
+    >
       <DashboardDetails
         activeCategory={activeCategory}
         chartData={[
@@ -38,7 +44,7 @@ function Dashboard({
       />
 
       <div style={{ width: "100%", height: "100%" }}>
-        {isLoaded && (  
+        {isLoaded && (
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
             center={mapCenter}
@@ -46,7 +52,7 @@ function Dashboard({
             ref={googleMapRef}
             onLoad={handleMapLoad}
           >
-              {memoizedShowData.map((location, index) => (
+            {memoizedShowData?.map((location, index) => (
               <CustomMarker
                 key={index}
                 location={location}

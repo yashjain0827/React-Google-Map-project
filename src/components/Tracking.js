@@ -418,7 +418,7 @@ const Tracking = () => {
                 zIndex: 10,
               }}
             >
-              {[1, 2, 3, 4].map((multiplier) => (
+              {[1, 2, 3, 4]?.map((multiplier) => (
                 <Button
                   key={multiplier}
                   onClick={() => handleSpeedChange(multiplier)}
@@ -495,7 +495,7 @@ const Tracking = () => {
                       }
                     />
                   </ListItem>
-                  {stopMarkers.map((stop, index) => (
+                  {stopMarkers?.map((stop, index) => (
                     <ListItem key={`stop-${index}`}>
                       <ListItemText
                         primary={`Stop ${index + 1}`}
@@ -533,7 +533,7 @@ const Tracking = () => {
                     label="End"
                   />
                   <Polyline
-                    path={traveledPath.map((point) => ({
+                    path={traveledPath?.map((point) => ({
                       lat: point.latitude,
                       lng: point.longitude,
                     }))}
@@ -573,7 +573,7 @@ const Tracking = () => {
                       </div>
                     </InfoWindow>
                   )}
-                  {stopMarkers.map((stop, index) => (
+                  {stopMarkers?.map((stop, index) => (
                     <Marker
                       key={`stop-marker-${index}`}
                       position={{
