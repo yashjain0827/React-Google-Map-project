@@ -13,7 +13,7 @@ class MapSearch extends Component {
     super(props);
     this.state = {
       mapCenter: { lat: 20.5937, lng: 78.9629 },
-      zoom: 5, // Initial zoom level
+      zoom: 5,
       location: "",
       latitude: "",
       longitude: "",
@@ -97,7 +97,7 @@ class MapSearch extends Component {
           longitude: parseFloat(longitude),
         },
         zoom: 10, // Set zoom to 10 on search
-        geofenceCoords: geofenceCoords.length > 0 ? geofenceCoords : [], // Ensure valid array
+        geofenceCoords: geofenceCoords.length > 0 ? geofenceCoords : [],
       });
     }
   };
@@ -119,7 +119,7 @@ class MapSearch extends Component {
       longitude: "",
       selectedLocation: null,
       geofenceCoords: [],
-      zoom: 5, // Reset zoom when cleared
+      zoom: 5,
     });
   };
 

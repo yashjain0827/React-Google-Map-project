@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-// import { useJsApiLoader } from "@react-google-maps/api";
+import { useJsApiLoader } from "@react-google-maps/api";
 import {
   BrowserRouter as Router,
   Route,
@@ -35,7 +35,7 @@ const PrivateRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-const Home = () => {
+const Home = ({ isLoaded }) => {
   const [allData, setAllData] = useState(null);
   const [showData, setShowData] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all");
@@ -44,11 +44,6 @@ const Home = () => {
   const [open, setOpen] = useState(false);
 
   const googleMapRef = useRef(null);
-
-  // const { isLoaded } = useJsApiLoader({
-  //   id: "google-map-script",
-  //   googleMapsApiKey: "",
-  // });
 
   const [mapLoaded, setMapLoaded] = useState(false);
 
@@ -158,7 +153,7 @@ const Home = () => {
                     allData={allData}
                     showData={showData}
                     setShowData={setShowData}
-                    // isLoaded={isLoaded}
+                    isLoaded={isLoaded}
                     mapContainerStyle={mapContainerStyle}
                     googleMapRef={googleMapRef}
                     mapCenter={mapCenter}
@@ -172,7 +167,7 @@ const Home = () => {
               path="/Tracking"
               element={
                 <PrivateRoute>
-                  <Tracking open={open} />
+                  <Tracking open={open} isLoaded={isLoaded} />
                 </PrivateRoute>
               }
             />
@@ -200,12 +195,19 @@ const Home = () => {
   );
 };
 
-const App = () => (
-  <AuthProvider>
-    <Router>
-      <Home />
-    </Router>
-  </AuthProvider>
-);
+const App = () => {
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: "",
+    libraries: ["geometry"],
+  });
+  return (
+    <AuthProvider>
+      <Router>
+        <Home isLoaded={isLoaded} />
+      </Router>
+    </AuthProvider>
+  );
+};
 
 export default App;

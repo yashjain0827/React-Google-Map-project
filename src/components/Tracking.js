@@ -11,7 +11,6 @@ import {
   GoogleMap,
   Marker,
   Polyline,
-  useJsApiLoader,
   InfoWindow,
 } from "@react-google-maps/api";
 
@@ -20,7 +19,7 @@ const defaultCenter = {
   lng: 78.9629,
 };
 
-const Tracking = () => {
+const Tracking = ({ isLoaded }) => {
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [fromDate, setFromDate] = useState("");
@@ -52,6 +51,7 @@ const Tracking = () => {
   const [interpolatedIndex, setInterpolatedIndex] = useState(0);
 
   const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [zoom, setZoom] = useState(7);
 
   const handleMarkerClick = () => {
     setInfoBoxVisible(true);
@@ -61,10 +61,10 @@ const Tracking = () => {
     setInfoBoxVisible(false);
   };
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: "",
-  });
+  const [distance, setDistance] = useState(null);
+  const [estimatedTime, setEstimatedTime] = useState("");
+
+  const libraries = ["geometry", "maps"];
 
   useEffect(() => {
     const fetchDevices = async () => {
@@ -127,6 +127,50 @@ const Tracking = () => {
       const data = await response.json();
       setPositions(data);
 
+      if (isLoaded && window.google && data.length > 1) {
+        const google = window.google;
+        let totalDistanceMeters = 0;
+
+        for (let i = 0; i < data.length - 1; i++) {
+          const pointA = new google.maps.LatLng(
+            data[i].latitude,
+            data[i].longitude
+          );
+          const pointB = new google.maps.LatLng(
+            data[i + 1].latitude,
+            data[i + 1].longitude
+          );
+
+          totalDistanceMeters +=
+            google.maps.geometry.spherical.computeDistanceBetween(
+              pointA,
+              pointB
+            );
+        }
+
+        const totalDistanceKm = (totalDistanceMeters / 1000).toFixed(2); // meters to kilometers
+        setDistance(totalDistanceKm);
+
+        const startTime = new Date(data[0].fixTime);
+        const endTime = new Date(data[data.length - 1].fixTime);
+
+        const totalTimeHours = (endTime - startTime) / (1000 * 60 * 60); // miliseconds to hours
+
+        let estimatedTime = "";
+
+        if (totalTimeHours > 0) {
+          const avgSpeed = totalDistanceKm / totalTimeHours;
+          const estimatedTravelTimeHours = totalDistanceKm / avgSpeed;
+
+          // Convert time to HH:MM format
+          const hours = Math.floor(estimatedTravelTimeHours);
+          const minutes = Math.round((estimatedTravelTimeHours - hours) * 60);
+          estimatedTime = `${hours}h ${minutes}m`;
+        }
+
+        setEstimatedTime(estimatedTime);
+      }
+
       if (data.length > 0) {
         setCurrentPosition(data[0]);
         setTraveledPath([data[0]]);
@@ -149,6 +193,7 @@ const Tracking = () => {
           lat: data[0].latitude,
           lng: data[0].longitude,
         });
+        setZoom(15);
         setIsPlaying(true);
       }
     } catch (error) {
@@ -481,7 +526,11 @@ const Tracking = () => {
                   <ListItem>
                     <ListItemText
                       primary="Start Time"
-                      secondary={`${tripDetails.startTime} - (${tripDetails.startLatitude}, ${tripDetails.startLongitude})`}
+                      secondary={
+                        tripDetails.startTime
+                          ? `${tripDetails.startTime} - (${tripDetails.startLatitude}, ${tripDetails.startLongitude})`
+                          : "Not Started"
+                      }
                     />
                   </ListItem>
 
@@ -491,8 +540,20 @@ const Tracking = () => {
                       secondary={
                         tripDetails.endTime
                           ? `${tripDetails.endTime} - (${tripDetails.endLatitude}, ${tripDetails.endLongitude})`
-                          : ""
+                          : "Not Ended"
                       }
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Total Distance"
+                      secondary={distance ? `${distance} km` : "Not Travelled"}
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText
+                      primary="Estimated Time"
+                      secondary={estimatedTime ? `${estimatedTime}` : "N/A"}
                     />
                   </ListItem>
                   {stopMarkers.map((stop, index) => (
@@ -514,7 +575,7 @@ const Tracking = () => {
             <GoogleMap
               mapContainerStyle={mapContainerStyle}
               center={mapCenter}
-              zoom={15}
+              zoom={zoom}
             >
               {positions.length > 0 && (
                 <>
@@ -591,7 +652,7 @@ const Tracking = () => {
             </GoogleMap>
           </>
         ) : (
-          <p>{loadError ? "Error loading map" : "Loading map..."}</p>
+          ""
         )}
       </Box>
     </Box>

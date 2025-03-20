@@ -2,7 +2,6 @@ import React, { useMemo, useCallback } from "react";
 import DashboardDetails from "./DashboardDetails";
 import { GoogleMap } from "@react-google-maps/api";
 import CustomMarker from "./CustomMarker";
-import { useJsApiLoader } from "@react-google-maps/api";
 
 function Dashboard({
   activeCategory,
@@ -16,13 +15,10 @@ function Dashboard({
   getMarkerIcon: originalGetMarkerIcon,
   handleMapLoad,
   open,
+  isLoaded,
 }) {
   const memoizedShowData = useMemo(() => showData, [showData]);
   const getMarkerIcon = useCallback(originalGetMarkerIcon, []);
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: "",
-  });
 
   return (
     <div
