@@ -18,7 +18,7 @@ import carIdleIcon from "./img/carIdle.svg";
 import carOfflineIcon from "./img/carOffline.svg";
 import { Box, Grid } from "@mui/material";
 import { AuthProvider, useAuth } from "./components/AuthContext";
-import MapSearchWrapper from "./components/MapSearchWrapper";
+import MapSearch from "./components/MapSearch";
 
 const mapContainerStyle = {
   width: "100%",
@@ -175,7 +175,7 @@ const Home = ({ isLoaded }) => {
               path="/MapSearch"
               element={
                 <PrivateRoute>
-                  <MapSearchWrapper />
+                  <MapSearch isLoaded={isLoaded} />
                 </PrivateRoute>
               }
             />

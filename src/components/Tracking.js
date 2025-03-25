@@ -13,6 +13,7 @@ import {
   Polyline,
   InfoWindow,
 } from "@react-google-maps/api";
+import LoadingComponent from "./LoadingComponent";
 
 const defaultCenter = {
   lat: 20.5937,
@@ -24,7 +25,8 @@ const Tracking = ({ isLoaded }) => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [trackingLoading, settrackingLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState(null);
   const [positions, setPositions] = useState([]);
   const [currentPosition, setCurrentPosition] = useState(null);
@@ -69,7 +71,7 @@ const Tracking = ({ isLoaded }) => {
   useEffect(() => {
     const fetchDevices = async () => {
       try {
-        settrackingLoading(true);
+        setLoading(true);
         const response = await fetch(
           "https://nkcfleet.nyggs.com/api/devices?all=true",
           {
@@ -89,7 +91,7 @@ const Tracking = ({ isLoaded }) => {
       } catch (error) {
         setError(error.message);
       } finally {
-        settrackingLoading(false);
+        setLoading(false);
       }
     };
 
@@ -111,7 +113,7 @@ const Tracking = ({ isLoaded }) => {
     const to = new Date(toDate).toISOString();
 
     try {
-      settrackingLoading(true);
+      setLoading(true);
       const apiURL = `https://nkcfleet.nyggs.com/api/positions/?deviceId=${selectedDevice.id}&from=${from}&to=${to}`;
       const response = await fetch(apiURL, {
         headers: {
@@ -199,7 +201,7 @@ const Tracking = ({ isLoaded }) => {
     } catch (error) {
       setError(error.message);
     } finally {
-      settrackingLoading(false);
+      setLoading(false);
     }
   };
 
@@ -392,7 +394,7 @@ const Tracking = ({ isLoaded }) => {
 
   return (
     <Box className="tracking-container" sx={{ p: 1, marginLeft: "60px" }}>
-      {trackingLoading && <p>Loading...</p>}
+      {loading && <LoadingComponent isLoading={loading} />}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <Grid container columnSpacing={2} sx={{ marginTop: "5px" }}>
@@ -406,7 +408,7 @@ const Tracking = ({ isLoaded }) => {
             value={selectedDevice}
             onChange={(event, newValue) => setSelectedDevice(newValue)}
             sx={{ width: "100%" }}
-            disabled={trackingLoading || devices.length === 0}
+            disabled={loading || devices.length === 0}
           />
         </Grid>
 

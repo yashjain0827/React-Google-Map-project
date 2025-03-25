@@ -2,6 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import DashboardDetails from "./DashboardDetails";
 import { GoogleMap } from "@react-google-maps/api";
 import CustomMarker from "./CustomMarker";
+import LoadingComponent from "./LoadingComponent";
 
 function Dashboard({
   activeCategory,
@@ -44,6 +45,7 @@ function Dashboard({
       />
 
       <div style={{ width: "100%", height: "100%" }}>
+        {!isLoaded && <LoadingComponent isLoading={!isLoaded} />}
         {isLoaded && (
           <GoogleMap
             mapContainerStyle={mapContainerStyle}

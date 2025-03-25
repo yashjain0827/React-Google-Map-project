@@ -1,12 +1,7 @@
 import React, { Component } from "react";
 import { GoogleMap, Marker, Polygon } from "@react-google-maps/api";
-import {
-  Autocomplete,
-  Box,
-  CircularProgress,
-  TextField,
-  Button,
-} from "@mui/material";
+import { Autocomplete, Box, TextField, Button } from "@mui/material";
+import LoadingComponent from "./LoadingComponent";
 
 class MapSearch extends Component {
   constructor(props) {
@@ -193,7 +188,9 @@ class MapSearch extends Component {
           </Box>
         </Box>
 
-        {isLoaded ? (
+        {!isLoaded ? (
+          <LoadingComponent isLoading={!isLoaded} />
+        ) : (
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={mapCenter}
@@ -224,8 +221,6 @@ class MapSearch extends Component {
                 ) : null
               )}
           </GoogleMap>
-        ) : (
-          <CircularProgress />
         )}
       </Box>
     );
