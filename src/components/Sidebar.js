@@ -11,6 +11,8 @@ import { Link } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import SearchIcon from "@mui/icons-material/Search";
+import PersonIcon from "@mui/icons-material/Person";
+import PeopleIcon from "@mui/icons-material/People";
 
 const Sidebar = ({ open, setOpen }) => {
   const handleMouseEnter = () => {
@@ -58,12 +60,7 @@ const Sidebar = ({ open, setOpen }) => {
             <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
               <DashboardIcon />
             </ListItemIcon>
-            {open && (
-              <ListItemText
-                primary="Dashboard"
-                sx={{ opacity: open ? 1 : 0 }}
-              />
-            )}
+            {open && <ListItemText primary="Dashboard" />}
           </ListItemButton>
         </ListItem>
 
@@ -79,12 +76,7 @@ const Sidebar = ({ open, setOpen }) => {
             <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
               <TrackChangesIcon />
             </ListItemIcon>
-            {open && (
-              <ListItemText
-                primary="Device Tracking"
-                sx={{ opacity: open ? 1 : 0 }}
-              />
-            )}
+            {open && <ListItemText primary="Device Tracking" />}
           </ListItemButton>
         </ListItem>
 
@@ -100,12 +92,39 @@ const Sidebar = ({ open, setOpen }) => {
             <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
               <SearchIcon />
             </ListItemIcon>
-            {open && (
-              <ListItemText
-                primary="Map Search"
-                sx={{ opacity: open ? 1 : 0 }}
-              />
-            )}
+            {open && <ListItemText primary="Map Search" />}
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/EmployeeForm"
+            sx={{
+              justifyContent: open ? "initial" : "center",
+              "&:hover": { backgroundColor: "#FFD580" },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+              <PersonIcon />
+            </ListItemIcon>
+            {open && <ListItemText primary="Employee Form" />}
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/EmployeeList"
+            sx={{
+              justifyContent: open ? "initial" : "center",
+              "&:hover": { backgroundColor: "#FFD580" },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+              <PeopleIcon />
+            </ListItemIcon>
+            {open && <ListItemText primary="Employee List" />}
           </ListItemButton>
         </ListItem>
       </List>
