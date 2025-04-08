@@ -21,6 +21,7 @@ import { AuthProvider, useAuth } from "./components/AuthContext";
 import MapSearch from "./components/MapSearch";
 import EmployeeForm from "./components/EmployeeForm";
 import EmployeeList from "./components/EmployeeList";
+import FieldConfiguration from "./components/FieldConfiguration";
 const mapContainerStyle = {
   width: "100%",
   height: "100%",
@@ -210,6 +211,14 @@ const Home = ({ isLoaded }) => {
               element={
                 <PrivateRoute>
                   <EmployeeForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/FieldConfiguration"
+              element={
+                <PrivateRoute>
+                  <FieldConfiguration />
                 </PrivateRoute>
               }
             />

@@ -13,6 +13,7 @@ import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
 import PeopleIcon from "@mui/icons-material/People";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 const Sidebar = ({ open, setOpen }) => {
   const handleMouseEnter = () => {
@@ -125,6 +126,22 @@ const Sidebar = ({ open, setOpen }) => {
               <PeopleIcon />
             </ListItemIcon>
             {open && <ListItemText primary="Employee List" />}
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/FieldConfiguration"
+            sx={{
+              justifyContent: open ? "initial" : "center",
+              "&:hover": { backgroundColor: "#FFD580" },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+              <SettingsIcon />
+            </ListItemIcon>
+            {open && <ListItemText primary="Field Config" />}
           </ListItemButton>
         </ListItem>
       </List>
