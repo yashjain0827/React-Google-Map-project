@@ -119,11 +119,12 @@ const FieldConfiguration = () => {
   };
 
   const handleSubmit = () => {
-    const config = fields.map((field, index) => ({
+    const config = fields.map((field) => ({
       name: field.name,
       showLength: field.showLength,
       isMandatory: field.isMandatory,
       length: field.showLength ? field.length || "" : null,
+      pattern: field.pattern || null,
     }));
 
     localStorage.setItem("fieldConfig", JSON.stringify(config));
