@@ -15,13 +15,22 @@ import { Link } from "react-router-dom";
 
 const EmployeeList = () => {
   const [employeeData, setEmployeeData] = useState([]);
+  const [fieldConfig, setFieldConfig] = useState([]);
 
   useEffect(() => {
     const data = localStorage.getItem("employeeData");
     if (data) {
       setEmployeeData(JSON.parse(data));
     }
+    const config = localStorage.getItem("fieldConfig");
+    if (config) {
+      setFieldConfig(JSON.parse(config));
+    }
   }, []);
+
+  const displayFields = fieldConfig.filter(
+    ({ name }) => !["State", "City", "Nearby Place"].includes(name.trim())
+  );
 
   return (
     <Box
@@ -40,44 +49,47 @@ const EmployeeList = () => {
 
       <TableContainer
         component={Paper}
-        sx={{
-          maxHeight: 650,
-          overflow: "auto",
-        }}
+        sx={{ maxHeight: 650, overflow: "auto" }}
       >
         <Table>
-          <TableHead sx={{ backgroundColor: "#FF9F40" }}>
-            <TableRow>
-              <TableCell>Sl No</TableCell>
-              <TableCell>Profile</TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Present Address</TableCell>
-              <TableCell>Permanent Address</TableCell>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#400c60" }}>
+              <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>
+                Sl No
+              </TableCell>
+              <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>
+                Profile
+              </TableCell>
+              {displayFields.map(({ name }) => (
+                <TableCell
+                  key={name}
+                  sx={{ color: "#FFFFFF", fontWeight: "bold" }}
+                >
+                  {name}
+                </TableCell>
+              ))}
+              <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>
+                Present Address
+              </TableCell>
+              <TableCell sx={{ color: "#FFFFFF", fontWeight: "bold" }}>
+                Permanent Address
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {employeeData.map((emp, index) => (
-              <TableRow key={index}>
-                <TableCell>{emp.id}</TableCell>
+              <TableRow
+                key={index}
+                sx={{ backgroundColor: index % 2 === 0 ? "#fff" : "#f9f9f9" }}
+              >
+                <TableCell>{index + 1}</TableCell>
                 <TableCell>
                   <Avatar src={emp.profilePic} />
                 </TableCell>
-                <TableCell>
-                  <Link
-                    to={`/EmployeeForm/${emp.id}`}
-                    style={{
-                      color: "#007bff",
-                      textDecoration: "none",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {emp.name}
-                  </Link>
-                </TableCell>
-                <TableCell>{emp.phone}</TableCell>
-                <TableCell>{emp.email}</TableCell>
+                {displayFields.map(({ name }) => {
+                  const key = name.toLowerCase().replace(/\s+/g, "");
+                  return <TableCell key={key}>{emp[key]}</TableCell>;
+                })}
                 <TableCell>
                   {emp.statePresent}, {emp.cityPresent},{" "}
                   {emp.nearbyPlacePresent}
@@ -90,7 +102,7 @@ const EmployeeList = () => {
             ))}
             {employeeData.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center">
+                <TableCell colSpan={displayFields.length + 4} align="center">
                   No employee data found.
                 </TableCell>
               </TableRow>

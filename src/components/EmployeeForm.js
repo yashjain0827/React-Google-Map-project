@@ -13,7 +13,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const EmployeeForm = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // <-- Get ID from route
+  const { id } = useParams();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -62,7 +62,7 @@ const EmployeeForm = () => {
     if (id) {
       const allEmployees =
         JSON.parse(localStorage.getItem("employeeData")) || [];
-      const index = parseInt(id, 10) - 1; // since IDs are index+1
+      const index = parseInt(id, 10) - 1;
       const emp = allEmployees[index];
 
       if (emp) {
@@ -71,7 +71,7 @@ const EmployeeForm = () => {
           phone: emp.phone || "",
           email: emp.email || "",
           profilePic: emp.profilePic || "",
-          id: emp.id, // preserve ID for update
+          id: emp.id,
         });
 
         setPresentAddress({
@@ -135,10 +135,11 @@ const EmployeeForm = () => {
   const checkDuplicates = () => {
     const stored = JSON.parse(localStorage.getItem("employeeData")) || [];
     const duplicatePhone = stored.some(
-      (emp) => emp.phone === formData.phone && emp.id !== formData.id
+      (emp) =>
+        emp["phonenumber"] === formData["phonenumber"] && emp.id !== formData.id
     );
     const duplicateEmail = stored.some(
-      (emp) => emp.email === formData.email && emp.id !== formData.id
+      (emp) => emp["e-mail"] === formData["e-mail"] && emp.id !== formData.id
     );
     setDuplicatePhoneError(duplicatePhone);
     setDuplicateEmailError(duplicateEmail);
@@ -148,15 +149,22 @@ const EmployeeForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validate all fields using correct label-key pairs
-    const labelKeyMap = [
-      { label: "Name", key: "name" },
-      { label: "Phone Number", key: "phone" },
-      { label: "E-mail", key: "email" },
-    ];
+    const allFieldsValid = fieldConfig.every(
+      ({ name, isMandatory, pattern }) => {
+        const key = name.toLowerCase().replace(/\s+/g, "");
+        const value = formData[key] || "";
+        const shouldValidatePattern =
+          ["phonenumber", "e-mail"].includes(key) && pattern && value.trim();
 
-    const allFieldsValid = labelKeyMap.every(({ label, key }) =>
-      isValidField(label, formData[key])
+        const patternValid = shouldValidatePattern
+          ? new RegExp(pattern).test(value)
+          : true;
+
+        return !(
+          (isMandatory && !value.trim()) ||
+          (shouldValidatePattern && !patternValid)
+        );
+      }
     );
 
     if (!allFieldsValid) {
@@ -164,7 +172,6 @@ const EmployeeForm = () => {
       return;
     }
 
-    // Duplicate phone or email check
     const noDuplicates = checkDuplicates();
     if (!noDuplicates) {
       alert("Phone or Email already exists.");
@@ -173,7 +180,6 @@ const EmployeeForm = () => {
 
     const existingData = JSON.parse(localStorage.getItem("employeeData")) || [];
 
-    // Flatten the address fields into top-level structure
     const formattedData = {
       ...formData,
       cityPresent: presentAddress.city || "",
@@ -183,9 +189,6 @@ const EmployeeForm = () => {
       statePermanent: permanentAddress.state || "",
       nearbyPlacePermanent: permanentAddress.nearbyPlace || "",
     };
-
-    delete formattedData.presentAddress;
-    delete formattedData.permanentAddress;
 
     let updatedData;
     const isEditMode = !!formData.id;
@@ -231,7 +234,6 @@ const EmployeeForm = () => {
       <Box
         sx={{ width: "80%", display: "flex", flexDirection: "column", gap: 3 }}
       >
-        {/* Employee Details */}
         <Box
           sx={{
             border: "1px solid #ccc",
@@ -260,50 +262,54 @@ const EmployeeForm = () => {
               </Button>
             </Box>
 
-            <Box display="flex" gap={2}>
-              {[
-                { label: "Name", key: "name" },
-                { label: "Phone Number", key: "phone" },
-                { label: "E-mail", key: "email" },
-              ].map(({ label, key }) => {
-                const value = formData[key];
-                const rule = getFieldRule(label);
-                const error = rule.isMandatory && !value.trim();
-                const regexError = rule.pattern
-                  ? value.trim() !== "" && !new RegExp(rule.pattern).test(value)
-                  : false;
-                const isDuplicate =
-                  (label === "Phone Number" && duplicatePhoneError) ||
-                  (label === "E-mail" && duplicateEmailError);
-                return (
-                  <TextField
-                    key={key}
-                    label={label}
-                    sx={{ width: "300px" }}
-                    value={value}
-                    onChange={(e) => handleChange(key, e.target.value)}
-                    required={!!rule.isMandatory}
-                    error={error || regexError || isDuplicate}
-                    helperText={
-                      error
-                        ? "*Mandatory field"
-                        : regexError
-                        ? `Invalid ${label}`
-                        : isDuplicate
-                        ? `${label} already exists`
-                        : ""
-                    }
-                    inputProps={{
-                      maxLength: rule.length ? parseInt(rule.length) : 100,
-                    }}
-                  />
-                );
-              })}
+            <Box display="flex" gap={2} flexWrap="wrap">
+              {fieldConfig
+                .filter(
+                  ({ name }) =>
+                    !["State", "City", "Nearby Place"].includes(name.trim())
+                )
+                .map(({ name, isMandatory, length, pattern }) => {
+                  const key = name.toLowerCase().replace(/\s+/g, "");
+                  const value = formData[key] || "";
+                  const error = isMandatory && !value.trim();
+                  const regexError =
+                    ["Phone Number", "E-mail"].includes(name) &&
+                    pattern &&
+                    value.trim() !== "" &&
+                    !new RegExp(pattern).test(value);
+
+                  const isDuplicate =
+                    (name === "Phone Number" && duplicatePhoneError) ||
+                    (name === "E-mail" && duplicateEmailError);
+
+                  return (
+                    <TextField
+                      key={key}
+                      label={name}
+                      sx={{ width: "300px" }}
+                      value={value}
+                      onChange={(e) => handleChange(key, e.target.value)}
+                      required={!!isMandatory}
+                      error={error || regexError || isDuplicate}
+                      helperText={
+                        error
+                          ? "*Mandatory field"
+                          : regexError
+                          ? `Invalid ${name}`
+                          : isDuplicate
+                          ? `${name} already exists`
+                          : ""
+                      }
+                      inputProps={{
+                        maxLength: length ? parseInt(length) : 100,
+                      }}
+                    />
+                  );
+                })}
             </Box>
           </Box>
         </Box>
 
-        {/* Present Address */}
         <Box
           sx={{
             border: "1px solid #ccc",
@@ -368,7 +374,6 @@ const EmployeeForm = () => {
           </Box>
         </Box>
 
-        {/* Permanent Address */}
         <Box
           sx={{
             border: "1px solid #ccc",
