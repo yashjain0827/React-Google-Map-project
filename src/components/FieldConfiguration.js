@@ -128,7 +128,7 @@ const FieldConfiguration = () => {
     }));
 
     localStorage.setItem("fieldConfig", JSON.stringify(config));
-    alert("Configuration saved!");
+    alert("Saved The Config Changes");
     setTimeout(() => {
       navigate("/employeeform");
     }, 1000);
