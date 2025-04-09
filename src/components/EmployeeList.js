@@ -86,9 +86,19 @@ const EmployeeList = () => {
                 <TableCell>
                   <Avatar src={emp.profilePic} />
                 </TableCell>
-                {displayFields.map(({ name }) => {
+                {displayFields.map(({ name }, fieldIndex) => {
                   const key = name.toLowerCase().replace(/\s+/g, "");
-                  return <TableCell key={key}>{emp[key]}</TableCell>;
+                  const isNameField = key === "name";
+
+                  return (
+                    <TableCell key={key}>
+                      {isNameField ? (
+                        <Link to={`/EmployeeForm/${emp.id}`}>{emp[key]}</Link>
+                      ) : (
+                        emp[key]
+                      )}
+                    </TableCell>
+                  );
                 })}
                 <TableCell>
                   {emp.statePresent}, {emp.cityPresent},{" "}

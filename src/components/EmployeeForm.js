@@ -39,6 +39,7 @@ const EmployeeForm = () => {
   const [fieldConfig, setFieldConfig] = useState([]);
   const [duplicatePhoneError, setDuplicatePhoneError] = useState(false);
   const [duplicateEmailError, setDuplicateEmailError] = useState(false);
+  const [fieldConfigSnapshot, setFieldConfigSnapshot] = useState([]);
 
   const states = ["Odisha", "West Bengal", "Andhra Pradesh"];
   const stateCityMap = {
@@ -66,13 +67,19 @@ const EmployeeForm = () => {
       const emp = allEmployees[index];
 
       if (emp) {
-        setFormData({
-          name: emp.name || "",
-          phone: emp.phone || "",
-          email: emp.email || "",
-          profilePic: emp.profilePic || "",
-          id: emp.id,
+        const snapshot = emp.fieldConfigSnapshot || [];
+        setFieldConfigSnapshot(snapshot);
+
+        const updatedFormData = {};
+        snapshot.forEach(({ name }) => {
+          const key = name.toLowerCase().replace(/\s+/g, "");
+          updatedFormData[key] = emp[key] || "";
         });
+
+        updatedFormData.id = emp.id;
+        updatedFormData.profilePic = emp.profilePic || "";
+
+        setFormData(updatedFormData);
 
         setPresentAddress({
           state: emp.statePresent || "",
@@ -111,11 +118,14 @@ const EmployeeForm = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setFormData((prev) => ({
-        ...prev,
-        profilePic: imageUrl,
-      }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          profilePic: reader.result,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -149,10 +159,28 @@ const EmployeeForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const allFieldsValid = fieldConfig.every(
+    const isEditMode = !!formData.id;
+    const existingData = JSON.parse(localStorage.getItem("employeeData")) || [];
+
+    const currentEmployee = isEditMode
+      ? existingData.find((emp) => emp.id === formData.id)
+      : null;
+
+    const configToUse = isEditMode
+      ? currentEmployee?.fieldConfigSnapshot || []
+      : fieldConfig;
+
+    const missingFields = [];
+
+    const allFieldsValid = configToUse.forEach(
       ({ name, isMandatory, pattern }) => {
         const key = name.toLowerCase().replace(/\s+/g, "");
         const value = formData[key] || "";
+
+        if (isMandatory && !value.trim()) {
+          missingFields.push(name);
+          return false;
+        }
         const shouldValidatePattern =
           ["phonenumber", "e-mail"].includes(key) && pattern && value.trim();
 
@@ -160,15 +188,15 @@ const EmployeeForm = () => {
           ? new RegExp(pattern).test(value)
           : true;
 
-        return !(
-          (isMandatory && !value.trim()) ||
-          (shouldValidatePattern && !patternValid)
-        );
+        if (shouldValidatePattern && !patternValid) {
+          return false;
+        }
+        return true;
       }
     );
 
-    if (!allFieldsValid) {
-      alert("Please fill all mandatory fields correctly.");
+    if (missingFields.length > 0) {
+      alert(`Please fill ${missingFields.join(", ")}.`);
       return;
     }
 
@@ -177,8 +205,6 @@ const EmployeeForm = () => {
       alert("Phone or Email already exists.");
       return;
     }
-
-    const existingData = JSON.parse(localStorage.getItem("employeeData")) || [];
 
     const formattedData = {
       ...formData,
@@ -190,17 +216,22 @@ const EmployeeForm = () => {
       nearbyPlacePermanent: permanentAddress.nearbyPlace || "",
     };
 
-    let updatedData;
-    const isEditMode = !!formData.id;
-
-    if (isEditMode) {
-      updatedData = existingData.map((emp, index) =>
-        index + 1 === formData.id ? { ...formattedData, id: formData.id } : emp
-      );
-    } else {
+    if (!isEditMode) {
+      formattedData.fieldConfigSnapshot = fieldConfig;
       formattedData.id = existingData.length + 1;
-      updatedData = [...existingData, formattedData];
     }
+
+    const updatedData = isEditMode
+      ? existingData.map((emp) =>
+          emp.id === formData.id
+            ? {
+                ...formattedData,
+                id: formData.id,
+                fieldConfigSnapshot: emp.fieldConfigSnapshot,
+              }
+            : emp
+        )
+      : [...existingData, formattedData];
 
     localStorage.setItem("employeeData", JSON.stringify(updatedData));
 
@@ -218,7 +249,7 @@ const EmployeeForm = () => {
   return (
     <Box
       sx={{
-        height: "calc(100vh - 171px)",
+        height: "calc(100vh - 106px)",
         width: "100vw",
         display: "flex",
         flexDirection: "column",
@@ -271,12 +302,25 @@ const EmployeeForm = () => {
                 .map(({ name, isMandatory, length, pattern }) => {
                   const key = name.toLowerCase().replace(/\s+/g, "");
                   const value = formData[key] || "";
-                  const error = isMandatory && !value.trim();
+
+                  const snapshotField = fieldConfigSnapshot.find(
+                    (f) => f.name.toLowerCase().replace(/\s+/g, "") === key
+                  );
+
+                  const isEditMode = !!formData.id;
+                  const effectiveMandatory = isEditMode
+                    ? snapshotField?.isMandatory
+                    : isMandatory;
+                  const effectivePattern = isEditMode
+                    ? snapshotField?.pattern || pattern
+                    : pattern;
+
+                  const error = effectiveMandatory && !value.trim();
                   const regexError =
                     ["Phone Number", "E-mail"].includes(name) &&
-                    pattern &&
+                    effectivePattern &&
                     value.trim() !== "" &&
-                    !new RegExp(pattern).test(value);
+                    !new RegExp(effectivePattern).test(value);
 
                   const isDuplicate =
                     (name === "Phone Number" && duplicatePhoneError) ||
@@ -289,7 +333,7 @@ const EmployeeForm = () => {
                       sx={{ width: "300px" }}
                       value={value}
                       onChange={(e) => handleChange(key, e.target.value)}
-                      required={!!isMandatory}
+                      required={!!effectiveMandatory}
                       error={error || regexError || isDuplicate}
                       helperText={
                         error
@@ -448,15 +492,27 @@ const EmployeeForm = () => {
             })}
           </Box>
         </Box>
-
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ width: "300px", alignSelf: "flex-end", mt: 2 }}
-          onClick={handleSubmit}
+        <Box
+          sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}
         >
-          Submit
-        </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ width: "300px", alignSelf: "flex-end", mt: 2 }}
+            onClick={() => navigate("/FieldConfiguration")}
+            disabled={Boolean(id)}
+          >
+            Go to Config
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ width: "300px", alignSelf: "flex-end", mt: 2 }}
+            onClick={handleSubmit}
+          >
+            Submit
+          </Button>
+        </Box>
       </Box>
     </Box>
   );
